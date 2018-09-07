@@ -2,10 +2,11 @@ Code for our BMVC oral paper: "3D Hand Pose Estimation using Simulation and Part
 
 
 ## Discriminative Results:
-![Alt text](/img/dis_icvl.gif?raw=true "ICVL")
+![Alt text](/img/dis_icvl.gif)
 
 ## Generative Results:
-![Alt text](/img/walk_nyu.gif?raw=true "NYU")
+![Alt text](/img/walk_nyu.gif)
+
 
 
 
