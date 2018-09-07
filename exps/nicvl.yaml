@@ -1,0 +1,85 @@
+# Copyright (C) 2017 NVIDIA Corporation.  All rights reserved.
+# Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
+train:
+  snapshot_save_iterations: 25000 # How often do you want to save trained models
+  image_save_iterations: 2500 # How often do you want to save output images during training
+  image_display_iterations: 100
+  display: 10 # How often do you want to log the training stats
+  snapshot_prefix: ../outputs/nicvl/pre # Where do you want to save the outputs
+  hyperparameters:
+    trainer: LSPSTrainer
+    lr: 0.0001             # learning rate
+    ll_direct_link_w: 100  # weight on the self L1 reconstruction loss
+    kl_direct_link_w: 0.1 # weight on VAE encoding loss
+    ll_cycle_link_w: 100   # weight on the cycle L1 reconstruction loss
+    kl_cycle_link_w: 0.1  # weight on the cycle L1 reconstruction loss
+    ll_map_w: 1000
+    ll_map_z_w: 1000
+
+    gan_w: 10.        # weight on the adversarial loss
+    reg_w: 10.        # weight on the regression loss
+    feature_w: 0.001  # weight on discriminator feature matching
+    feature_w_reg: 10.  # weight on discriminator feature matching when computing the posterior
+    batch_size: 32       # image batch size per domain
+    train_map: False
+
+    ll_loss_vae: 100
+    kl_loss_vae: 0.1
+    batch_size_pose: 64       # image batch size per domain
+    max_iterations: 500000 # maximum number of training epochs
+
+    map:
+      name: Mapping
+      input_dim: 20
+      output_dim: 32
+      output_ch: 256
+    vae:
+      name: poseVAE
+      input_dim: 48
+      z_dim: 20
+      h_dim: 50
+    gen:
+      name: SharedResGen
+      ch: 64               # base channel number per layer
+      input_dim_a: 1
+      input_dim_b: 1
+      n_enc_front_blk: 3
+      n_enc_res_blk: 3
+      n_enc_shared_blk: 1
+      n_gen_shared_blk: 1
+      n_gen_res_blk: 3
+      n_gen_front_blk: 3
+    dis:
+      name: SharedDis
+      ch: 64
+      input_dim_a: 1
+      input_dim_b: 1
+      n_front_layer: 2
+      n_shared_layer: 4
+      reg_dim: 108
+      post_dim: 20
+  datasets:
+    train_a: # Domain 1 dataset
+      seed: 23455
+      class_name: dataset_hand_NYU # dataset class
+      root: /home/masoud/NYU/dataset # dataset root location
+      subset: train_synth
+      joint_subset: ICVL
+      sample_poses: 250000
+      augment: True
+      docom: False
+    train_b: # Domain 2 dataset
+      seed: 23455
+      class_name: dataset_hand_ICVL # dataset class
+      root: /home/masoud/deep-prior-pp/data/ICVL # dataset root location
+      subset: train
+      joint_subset: ICVL
+      sample_poses: 250000
+      augment: True
+      docom: False
+    test_b: # Domain 2 dataset
+      seed: 23455
+      class_name: dataset_hand_ICVL_test # dataset class
+      root: /home/masoud/deep-prior-pp/data/ICVL # dataset root location
+      subset: test_seq_1
+      docom: False
