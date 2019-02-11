@@ -31,7 +31,7 @@ import struct
 from data.basetypes import DepthFrame, NamedImgSequence
 from utils.handdetector import HandDetector
 from data.transformations import transformPoints2D
-import cPickle
+import pickle as cPickle
 import cv2
 import matplotlib.pyplot as plt
 from scipy import ndimage
@@ -177,6 +177,7 @@ class DepthImporter(object):
         return np.column_stack((row, col, depth))
 
     def loadRefineNetLazy(self, net):
+        basestring= str
         if isinstance(net, basestring):
             if os.path.exists(net):
                 from net.scalenet import ScaleNet, ScaleNetParams
@@ -377,10 +378,9 @@ class ICVLImporter(DepthImporter):
             for joint in range(self.numJoints):
                 for xyz in range(0, 3):
                     gtorig[joint, xyz] = part[joint*3+xyz+1]
-
-	    if True: #flip
-		dpt = np.fliplr(dpt)
-		gtorig[:, 0] = self.depth_map_size[0] - gtorig[:, 0]
+            if True: #flip
+                dpt = np.fliplr(dpt)
+                gtorig[:, 0] = self.depth_map_size[0] - gtorig[:, 0]
 
             # normalized joints in 3D coordinates
             gt3Dorig = self.jointsImgTo3D(gtorig)
@@ -1419,14 +1419,14 @@ class POSTImporter(DepthImporter):
         :return: image data of depth image
         """
         img = np.float32(cv2.imread(filename, -1))
-	if synth:
+        if synth:
             lbl = np.float32(cv2.imread(filename.replace('dmaps', 'lmaps')\
 						.replace('_d_', '_l_'), -1))
-	elif False:
-	    pass
+        elif False:
+            pass
             #lbl = np.float32(cv2.imread(filename.replace('dmaps', 'lmaps')\
 						#.replace('_d_', '_l_'), -1))
-	    lbl = [ np.loadtxt(open(filename.replace('.png', '_2d.txt'))), \
+            lbl = [ np.loadtxt(open(filename.replace('.png', '_2d.txt'))), \
 			np.loadtxt(open(filename.replace('.png', '_3d.txt'))) ]
 	    #print(lbl[0].shape, lbl[1].shape,)
         else:
@@ -1446,19 +1446,19 @@ class POSTImporter(DepthImporter):
           dpt[dpt == 10000] = 0.
           lbl_ids = [1,2,3,4,6,7,8,9,12,16,17,18,19,20,24,25,26,27]
           gtorig = np.array(ndimage.measurements.center_of_mass(lbl, lbl, lbl_ids))
-	  gtorig = np.fliplr(np.floor(gtorig))
+          gtorig = np.fliplr(np.floor(gtorig))
           zs = np.array([np.nanmean(dpt[lbl == lbl_ids[j]]) for j in range(len(lbl_ids))])
           gtorig = np.floor(np.concatenate((gtorig, np.expand_dims(zs,1)),axis=1))
 
           return dpt, gtorig, self.jointsImgTo3D(gtorig)
         elif False:
           dpt[dpt == 65535] = 0.
-	  print('******', lbl[1])
-	  gtorig = np.zeros(lbl[1].shape)
-	  gtorig[:,0] = lbl[1][:,0] * dpt.shape[1]
-	  gtorig[:,1] = 1 - lbl[1][:,1]
-	  gtorig[:,1] *= dpt.shape[0]
-	  gtorig[:,2] = lbl[1][:,2]
+          print('******', lbl[1])
+          gtorig = np.zeros(lbl[1].shape)
+          gtorig[:,0] = lbl[1][:,0] * dpt.shape[1]
+          gtorig[:,1] = 1 - lbl[1][:,1]
+          gtorig[:,1] *= dpt.shape[0]
+          gtorig[:,2] = lbl[1][:,2]
           return dpt, gtorig, self.jointsImgTo3D(gtorig)
         else:
           dpt = dpt / 5.
@@ -1471,7 +1471,7 @@ class POSTImporter(DepthImporter):
           com = list(reversed(list(ndimage.measurements.center_of_mass(mask))))
           zs = dpt[mask!=0]
           com = np.array(com + [np.mean(zs[zs!=0])])
-	  com = np.expand_dims(com,0)
+          com = np.expand_dims(com,0)
           return dpt, com, com
 
 
@@ -1528,7 +1528,7 @@ class POSTImporter(DepthImporter):
         i = 0
         for line in range(len(self.images)):
             dptFileName = self.images[line]
-	    print(line, len(self.images), dptFileName)
+            print(line, len(self.images), dptFileName)
 
             if not os.path.isfile(dptFileName):
                 print("File {} does not exist!".format(dptFileName))
@@ -1544,7 +1544,7 @@ class POSTImporter(DepthImporter):
 
             dpt, gtorig, gt3Dorig = self.prepareSamples(dpt, lbl, 'synth' in seqName)
 	    #plt.imshow(dpt); plt.show()
-	    print(gtorig)
+            print(gtorig)
 
             # print gt3D
             self.showAnnotatedDepth(DepthFrame(dpt,gtorig,gtorig,0,gt3Dorig,gt3Dorig,0,dptFileName,'','', {}))
@@ -1568,9 +1568,8 @@ class POSTImporter(DepthImporter):
 
             data.append(DepthFrame(dpt.astype(np.float32), gtorig, gtcrop, M, gt3Dorig, gt3Dcrop, com3D, dptFileName,
                                    '', self.sides[seqName], {}))
-
-	    if True: #save to file
-		cropfile = dptFileName.replace('dmaps','crop').replace('png','pkl')
+            if True: #save to file
+                cropfile = dptFileName.replace('dmaps','crop').replace('png','pkl')
 		#print(cropfile)
                 f = open(cropfile, 'wb')
                 cPickle.dump(data[-1], f, protocol=cPickle.HIGHEST_PROTOCOL)
@@ -1581,7 +1580,7 @@ class POSTImporter(DepthImporter):
 
             # early stop
             if len(data) >= Nmax:
-	        print('nmax achieved', Nmax)
+                print('nmax achieved', Nmax)
                 break
 
         pbar.finish()
@@ -1850,4 +1849,3 @@ class POSTImporter(DepthImporter):
 
         # combine x,y,depth
         return np.column_stack((row, col, depth))
-
