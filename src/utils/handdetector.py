@@ -211,7 +211,7 @@ class HandDetector(object):
         :return: xstart, xend, ystart, yend, zstart, zend
         """
         if numpy.isclose(com[2], 0.):
-            print "Warning: CoM ill-defined!"
+            print("Warning: CoM ill-defined!")
             xstart = self.dpt.shape[0]//4
             xend = xstart + self.dpt.shape[0]//2
             ystart = self.dpt.shape[1]//4
@@ -245,10 +245,10 @@ class HandDetector(object):
         hb = (yend - ystart)
         if wb > hb:
             scale = numpy.eye(3) * dsize[0] / float(wb)
-            sz = (dsize[0], hb * dsize[0] / wb)
+            sz = int(dsize[0], hb * dsize[0] / wb)
         else:
             scale = numpy.eye(3) * dsize[1] / float(hb)
-            sz = (wb * dsize[1] / hb, dsize[1])
+            sz = int(wb * dsize[1] / hb, dsize[1])
         scale[2, 2] = 1
 
         xstart = int(numpy.floor(dsize[0] / 2. - sz[1] / 2.))
@@ -343,7 +343,8 @@ class HandDetector(object):
         :return: resized image
         """
         if self.resizeMethod == self.RESIZE_CV2_NN:
-            rz = cv2.resize(crop, sz, interpolation=cv2.INTER_NEAREST)
+            #print(sz)
+            rz = cv2.resize(crop, (sz), interpolation=cv2.INTER_NEAREST)
         elif self.resizeMethod == self.RESIZE_BILINEAR:
             rz = self.bilinearResize(crop, sz, self.getNDValue())
         elif self.resizeMethod == self.RESIZE_CV2_LINEAR:
@@ -363,9 +364,9 @@ class HandDetector(object):
         wb = (xend - xstart)
         hb = (yend - ystart)
         if wb > hb:
-            sz = (dsize[0], hb * dsize[0] / wb)
+            sz = int(dsize[0], hb * dsize[0] / wb)
         else:
-            sz = (wb * dsize[1] / hb, dsize[1])
+            sz = int(wb * dsize[1] / hb, dsize[1])
 
         # depth resize
         rz = self.resizeCrop(cropped, sz)
@@ -449,9 +450,9 @@ class HandDetector(object):
         wb = (xend - xstart)
         hb = (yend - ystart)
         if wb > hb:
-            sz = (dsize[0], hb * dsize[0] / wb)
+            sz = (dsize[0], int(hb * dsize[0] / wb))
         else:
-            sz = (wb * dsize[1] / hb, dsize[1])
+            sz = (int(wb * dsize[1] / hb), dsize[1])
 
         # print com, sz, cropped.shape, xstart, xend, ystart, yend, hb, wb, zstart, zend
         trans = numpy.eye(3)
@@ -835,9 +836,8 @@ class HandDetector(object):
         all_modes = ['none', 'rot', 'sc', 'com', 'rot+com', 'com+rot',
                      'rot+com+sc', 'rot+sc+com', 'sc+rot+com', 'sc+com+rot', 'com+sc+rot', 'com+rot+sc']
         assert all([aug_modes[i] in all_modes for i in xrange(len(aug_modes))])
-
-	p2use = numpy.minimum(base_poses.shape[0], nmax)
-	print('poses to use %d' % p2use)
+        p2use = numpy.minimum(base_poses.shape[0], nmax)
+        print('poses to use %d' % p2use)
 
         new_poses = numpy.zeros((int(num_poses), base_poses.shape[1], base_poses.shape[2]), dtype=base_poses.dtype)
         new_com = numpy.zeros((int(num_poses), 3), dtype=base_poses.dtype)
@@ -855,8 +855,8 @@ class HandDetector(object):
                 return base_poses / (base_cube[:, 2]/2.)[:, None, None]
 
         for i in xrange(int(num_poses)):
-	    if i % 1000 == 0:
-		print(i)
+            if i % 1000 == 0:
+               print(i)
             mode = modes[i]
             ridx = ridxs[i]
             cube = base_cube[ridx]
