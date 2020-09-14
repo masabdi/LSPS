@@ -85,22 +85,28 @@ class Dataset(object):
             label0 = numpy.asarray(imgSeq.data[0].gtorig, 'float32')
             h, w = data0.shape
             j, d = label0.shape
-            imgStack = numpy.zeros((numImgs, 1, h, w), dtype='float32')  # num_imgs,stack_size,rows,cols
-            labelStack = numpy.zeros((numImgs, j, d), dtype='float32')  # num_imgs,joints,dim
+            # num_imgs,stack_size,rows,cols
+            imgStack = numpy.zeros((numImgs, 1, h, w), dtype='float32')
+            labelStack = numpy.zeros(
+                (numImgs, j, d), dtype='float32')  # num_imgs,joints,dim
             for i in xrange(numImgs):
                 if normZeroOne:
                     imgD = numpy.asarray(imgSeq.data[i].dpt.copy(), 'float32')
-                    imgD[imgD == 0] = imgSeq.data[i].com[2] + (imgSeq.config['cube'][2] / 2.)
-                    imgD -= (imgSeq.data[i].com[2] - (imgSeq.config['cube'][2] / 2.))
+                    imgD[imgD == 0] = imgSeq.data[i].com[2] + \
+                        (imgSeq.config['cube'][2] / 2.)
+                    imgD -= (imgSeq.data[i].com[2] -
+                             (imgSeq.config['cube'][2] / 2.))
                     imgD /= imgSeq.config['cube'][2]
                 else:
                     imgD = numpy.asarray(imgSeq.data[i].dpt.copy(), 'float32')
-                    imgD[imgD == 0] = imgSeq.data[i].com[2] + (imgSeq.config['cube'][2] / 2.)
+                    imgD[imgD == 0] = imgSeq.data[i].com[2] + \
+                        (imgSeq.config['cube'][2] / 2.)
                     imgD -= imgSeq.data[i].com[2]
                     imgD /= (imgSeq.config['cube'][2] / 2.)
 
                 imgStack[i] = imgD
-                labelStack[i] = numpy.asarray(imgSeq.data[i].gt3Dcrop, dtype='float32') / (imgSeq.config['cube'][2] / 2.)
+                labelStack[i] = numpy.asarray(
+                    imgSeq.data[i].gt3Dcrop, dtype='float32') / (imgSeq.config['cube'][2] / 2.)
 
             if self.localCache:
                 self._imgStacks[seqName] = imgStack
@@ -146,6 +152,7 @@ class NYUDataset(Dataset):
 
         self.lmi = NYUImporter(basepath)
 
+
 class POSTDataset(Dataset):
     def __init__(self, imgSeqs=None, basepath=None, localCache=True):
         """
@@ -156,4 +163,3 @@ class POSTDataset(Dataset):
             basepath = '../../data/NYU/'
 
         self.lmi = NYUImporter(basepath)
-

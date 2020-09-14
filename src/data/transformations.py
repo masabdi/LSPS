@@ -39,7 +39,7 @@ def getTransformationMatrix(center, rot, trans, scale):
     cy = center[1]
     tx = trans[0]
     ty = trans[1]
-    t = numpy.array([ca * sc, -sa * sc, sc * (ca * (-tx - cx) + sa * ( cy + ty)) + cx,
+    t = numpy.array([ca * sc, -sa * sc, sc * (ca * (-tx - cx) + sa * (cy + ty)) + cx,
                      sa * sc, ca * sc, sc * (ca * (-ty - cy) + sa * (-tx - cx)) + cy])
     return t
 
@@ -51,7 +51,8 @@ def transformPoint2D(pt, M):
     :param M: transformation matrix
     :return: transformed point
     """
-    pt2 = numpy.dot(numpy.asarray(M).reshape((3, 3)), numpy.asarray([pt[0], pt[1], 1]))
+    pt2 = numpy.dot(numpy.asarray(M).reshape((3, 3)),
+                    numpy.asarray([pt[0], pt[1], 1]))
     return numpy.asarray([pt2[0] / pt2[2], pt2[1] / pt2[2]])
 
 
@@ -162,5 +163,6 @@ def transformPoint3D(pt, M):
     :param M: transformation matrix
     :return: transformed point
     """
-    pt3 = numpy.dot(numpy.asarray(M).reshape((4, 4)), numpy.asarray([pt[0], pt[1], pt[2], 1]))
+    pt3 = numpy.dot(numpy.asarray(M).reshape((4, 4)),
+                    numpy.asarray([pt[0], pt[1], pt[2], 1]))
     return numpy.asarray([pt3[0] / pt3[3], pt3[1] / pt3[3], pt3[2] / pt3[3]])

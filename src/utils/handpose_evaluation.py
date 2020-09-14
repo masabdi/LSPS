@@ -56,15 +56,18 @@ class HandposeEvaluation(object):
             raise ValueError("Params must be list or ndarray")
 
         if len(gtjoints) != len(joints):
-            print("Error: groundtruth has {} elements, eval data has {}".format(len(gtjoints), len(joints)))
+            print("Error: groundtruth has {} elements, eval data has {}".format(
+                len(gtjoints), len(joints)))
             raise ValueError("Params must be the same size")
 
         if len(gtjoints) == len(joints) == 0:
-            print("Error: groundtruth has {} elements, eval data has {}".format(len(gtjoints), len(joints)))
+            print("Error: groundtruth has {} elements, eval data has {}".format(
+                len(gtjoints), len(joints)))
             raise ValueError("Params must be of non-zero size")
 
         if gtjoints[0].shape != joints[0].shape:
-            print("Error: groundtruth has {} dims, eval data has {}".format(gtjoints[0].shape, joints[0].shape))
+            print("Error: groundtruth has {} dims, eval data has {}".format(
+                gtjoints[0].shape, joints[0].shape))
             raise ValueError("Params must be of same dimensionality")
 
         self.gtjoints = numpy.asarray(gtjoints)
@@ -76,10 +79,12 @@ class HandposeEvaluation(object):
         self.linestyles = ['-']  # , '--', '-.', ':', '-', '--', '-.', ':']
         self.linewidth = linewidth
         self.dolegend = dolegend
-        self.default_plots = ['frameswithinmax', 'jointmeanerror', 'jointmaxerror']
+        self.default_plots = ['frameswithinmax',
+                              'jointmeanerror', 'jointmaxerror']
 
         self.subfolder = './eval/'
-        self.visiblemask = numpy.ones((self.gtjoints.shape[0], self.gtjoints.shape[1], 3))
+        self.visiblemask = numpy.ones(
+            (self.gtjoints.shape[0], self.gtjoints.shape[1], 3))
 
         self.jointNames = None
         self.jointConnections = []
@@ -263,7 +268,8 @@ class HandposeEvaluation(object):
             # Put a legend below current axis
             handles, labels = ax.get_legend_handles_labels()
             # lgd = ax.legend(handles, labels, loc='lower right', ncol=1) #, bbox_to_anchor=(0.5,-0.1)
-            lgd = ax.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=3)  # ncol=2, prop={'size': 14})
+            lgd = ax.legend(handles, labels, loc='upper center', bbox_to_anchor=(
+                0.5, -0.1), ncol=3)  # ncol=2, prop={'size': 14})
             bbea = (lgd,)
         else:
             bbea = None
@@ -273,7 +279,8 @@ class HandposeEvaluation(object):
         plt.close(fig)
 
         # plot mean error for each joint
-        ind = numpy.arange(self.joints.shape[1]+1)  # the x locations for the groups, +1 for mean
+        # the x locations for the groups, +1 for mean
+        ind = numpy.arange(self.joints.shape[1]+1)
         if baseline is not None:
             width = (1 - 0.33) / (1. + len(baseline))  # the width of the bars
         else:
@@ -283,13 +290,16 @@ class HandposeEvaluation(object):
         mean.append(self.getMeanError())
         std = [self.getJointStdError(j) for j in range(self.joints.shape[1])]
         std.append(self.getStdError())
-        ax.bar(ind, numpy.array(mean), width, label=methodName, color=self.colors[0])  # , yerr=std)
+        ax.bar(ind, numpy.array(mean), width, label=methodName,
+               color=self.colors[0])  # , yerr=std)
         bs_idx = 1
         if baseline is not None:
             for bs in baseline:
-                mean = [bs[1].getJointMeanError(j) for j in range(self.joints.shape[1])]
+                mean = [bs[1].getJointMeanError(j)
+                        for j in range(self.joints.shape[1])]
                 mean.append(bs[1].getMeanError())
-                std = [bs[1].getJointStdError(j) for j in range(self.joints.shape[1])]
+                std = [bs[1].getJointStdError(j)
+                       for j in range(self.joints.shape[1])]
                 std.append(bs[1].getStdError())
                 ax.bar(ind + width * float(bs_idx), numpy.array(mean), width,
                        label=bs[0], color=self.colors[bs_idx % len(self.colors)])  # , yerr=std)
@@ -304,7 +314,8 @@ class HandposeEvaluation(object):
         if self.dolegend:
             # Put a legend below current axis
             handles, labels = ax.get_legend_handles_labels()
-            lgd = ax.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=3)
+            lgd = ax.legend(handles, labels, loc='upper center',
+                            bbox_to_anchor=(0.5, -0.1), ncol=3)
             bbea = (lgd,)
         else:
             bbea = None
@@ -314,7 +325,8 @@ class HandposeEvaluation(object):
         plt.close(fig)
 
         # plot maximum error for each joint
-        ind = numpy.arange(self.joints.shape[1])  # the x locations for the groups
+        # the x locations for the groups
+        ind = numpy.arange(self.joints.shape[1])
         if baseline is not None:
             width = (1 - 0.33) / (1. + len(baseline))  # the width of the bars
         else:
@@ -326,7 +338,8 @@ class HandposeEvaluation(object):
         if baseline is not None:
             for bs in baseline:
                 ax.bar(ind + width * float(bs_idx),
-                       numpy.array([bs[1].getJointMaxError(j) for j in range(self.joints.shape[1])]), width,
+                       numpy.array([bs[1].getJointMaxError(j)
+                                    for j in range(self.joints.shape[1])]), width,
                        label=bs[0], color=self.colors[bs_idx % len(self.colors)])
                 bs_idx += 1
         ax.set_xticks(ind + width)
@@ -336,7 +349,8 @@ class HandposeEvaluation(object):
         if self.dolegend:
             # Put a legend below current axis
             handles, labels = ax.get_legend_handles_labels()
-            lgd = ax.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=3)
+            lgd = ax.legend(handles, labels, loc='upper center',
+                            bbox_to_anchor=(0.5, -0.1), ncol=3)
             bbea = (lgd,)
         else:
             bbea = None
@@ -383,19 +397,22 @@ class HandposeEvaluation(object):
             raise NotImplementedError("")
 
         if not numpy.allclose(upsample, 1):
-            imgcopy = cv2.resize(imgcopy, dsize=None, fx=upsample, fy=upsample, interpolation=cv2.INTER_LINEAR)
+            imgcopy = cv2.resize(
+                imgcopy, dsize=None, fx=upsample, fy=upsample, interpolation=cv2.INTER_LINEAR)
 
         joint = joint.copy()
         for i in range(joint.shape[0]):
             joint[i, 0:2] -= numpy.asarray([dpt.shape[0]//2, dpt.shape[1]//2])
             joint[i, 0:2] *= upsample
-            joint[i, 0:2] += numpy.asarray([imgcopy.shape[0]//2, imgcopy.shape[1]//2])
+            joint[i,
+                  0:2] += numpy.asarray([imgcopy.shape[0]//2, imgcopy.shape[1]//2])
 
         gtcrop = gtcrop.copy()
         for i in range(gtcrop.shape[0]):
             gtcrop[i, 0:2] -= numpy.asarray([dpt.shape[0]//2, dpt.shape[1]//2])
             gtcrop[i, 0:2] *= upsample
-            gtcrop[i, 0:2] += numpy.asarray([imgcopy.shape[0]//2, imgcopy.shape[1]//2])
+            gtcrop[i,
+                   0:2] += numpy.asarray([imgcopy.shape[0]//2, imgcopy.shape[1]//2])
 
         # use child class plots
         if showJoints:
@@ -415,9 +432,10 @@ class HandposeEvaluation(object):
 
             self.plotJoints(imgcopy, gtcrop, annoscale=annoscale,
                             color=cc, jcolor=jc)  # groundtruth
-        
+
         if name is not None:
-            cv2.imwrite('{}/annotated_{}.png'.format(self.subfolder, name), imgcopy)
+            cv2.imwrite(
+                '{}/annotated_{}.png'.format(self.subfolder, name), imgcopy)
         else:
             import matplotlib.pyplot as plt
 
@@ -444,9 +462,11 @@ class HandposeEvaluation(object):
             for i in range(len(self.jointConnections)):
                 if isinstance(ax, numpy.ndarray):
                     if color == 'nice':
-                        lc = tuple((self.jointConnectionColors[i]*255.).astype(int))
+                        lc = tuple(
+                            (self.jointConnectionColors[i]*255.).astype(int))
                     elif color == 'gray':
-                        lc = tuple((rgb_to_gray(self.jointConnectionColors[i])*255.).astype(int))
+                        lc = tuple(
+                            (rgb_to_gray(self.jointConnectionColors[i])*255.).astype(int))
                     else:
                         lc = color
                     cv2.line(ax, (int(numpy.rint(joint[self.jointConnections[i][0], 0])),
@@ -462,14 +482,16 @@ class HandposeEvaluation(object):
                     else:
                         lc = color
                     ax.plot(numpy.hstack((joint[self.jointConnections[i][0], 0], joint[self.jointConnections[i][1], 0])),
-                            numpy.hstack((joint[self.jointConnections[i][0], 1], joint[self.jointConnections[i][1], 1])),
+                            numpy.hstack(
+                                (joint[self.jointConnections[i][0], 1], joint[self.jointConnections[i][1], 1])),
                             c=lc, linewidth=3.0*annoscale)
         for i in range(joint.shape[0]):
             if isinstance(ax, numpy.ndarray):
                 if jcolor == 'nice':
                     jc = tuple((self.jointColors[i]*255.).astype(int))
                 elif jcolor == 'gray':
-                    jc = tuple((rgb_to_gray(self.jointColors[i])*255.).astype(int))
+                    jc = tuple(
+                        (rgb_to_gray(self.jointColors[i])*255.).astype(int))
                 else:
                     jc = jcolor
                 cv2.circle(ax, (int(numpy.rint(joint[i, 0])), int(numpy.rint(joint[i, 1]))), 6*annoscale,
@@ -513,7 +535,8 @@ class HandposeEvaluation(object):
             iren = obj
             render_window = iren.GetRenderWindow()
             if key == "s":
-                file_name = self.subfolder + str(numpy.random.randint(0, 100)).zfill(5) + ".png"
+                file_name = self.subfolder + \
+                    str(numpy.random.randint(0, 100)).zfill(5) + ".png"
                 image = vtk.vtkWindowToImageFilter()
                 image.SetInput(render_window)
                 png_writer = vtk.vtkPNGWriter()
@@ -556,9 +579,11 @@ class HandposeEvaluation(object):
             renderer.AddActor(pointCloud.vtkActor)
             renderer.ResetCamera()
 
-        self.vtkPlotHand(renderer, joint3D, 'nice' if niceColors is True else (1, 0, 0))
+        self.vtkPlotHand(renderer, joint3D,
+                         'nice' if niceColors is True else (1, 0, 0))
         if showGT:
-            self.vtkPlotHand(renderer, gt3Dorig, 'nice' if niceColors is True else (0, 0, 1))
+            self.vtkPlotHand(renderer, gt3Dorig,
+                             'nice' if niceColors is True else (0, 0, 1))
 
         # setup camera position
         camera = renderer.GetActiveCamera()
@@ -575,7 +600,8 @@ class HandposeEvaluation(object):
         # Interactor
         renderWindowInteractor = vtk.vtkRenderWindowInteractor()
         renderWindowInteractor.SetRenderWindow(renderWindow)
-        renderWindowInteractor.AddObserver("KeyPressEvent", key_pressed_callback)
+        renderWindowInteractor.AddObserver(
+            "KeyPressEvent", key_pressed_callback)
 
         if showPC is False:
             renderer.ResetCamera()
@@ -658,8 +684,10 @@ class HandposeEvaluation(object):
             for i in range(len(self.jointConnections)):
                 # create source
                 source = vtk.vtkLineSource()
-                source.SetPoint1(joint3D[self.jointConnections[i][0], 0], joint3D[self.jointConnections[i][0], 1], joint3D[self.jointConnections[i][0], 2])
-                source.SetPoint2(joint3D[self.jointConnections[i][1], 0], joint3D[self.jointConnections[i][1], 1], joint3D[self.jointConnections[i][1], 2])
+                source.SetPoint1(joint3D[self.jointConnections[i][0], 0],
+                                 joint3D[self.jointConnections[i][0], 1], joint3D[self.jointConnections[i][0], 2])
+                source.SetPoint2(joint3D[self.jointConnections[i][1], 0],
+                                 joint3D[self.jointConnections[i][1], 1], joint3D[self.jointConnections[i][1], 2])
 
                 # mapper
                 mapper = vtk.vtkPolyDataMapper()
@@ -671,9 +699,11 @@ class HandposeEvaluation(object):
 
                 # color actor
                 if colors == 'nice':
-                    actor.GetProperty().SetColor(self.jointConnectionColors[i][0], self.jointConnectionColors[i][1], self.jointConnectionColors[i][2])
+                    actor.GetProperty().SetColor(
+                        self.jointConnectionColors[i][0], self.jointConnectionColors[i][1], self.jointConnectionColors[i][2])
                 else:
-                    actor.GetProperty().SetColor(colors[0], colors[1], colors[2])
+                    actor.GetProperty().SetColor(
+                        colors[0], colors[1], colors[2])
 
                 actor.GetProperty().SetLineWidth(3)
 
@@ -694,33 +724,52 @@ class ICVLHandposeEvaluation(HandposeEvaluation):
         :type joints: calculated joints
         """
 
-        super(ICVLHandposeEvaluation, self).__init__(gt, joints, dolegend, linewidth)
+        super(ICVLHandposeEvaluation, self).__init__(
+            gt, joints, dolegend, linewidth)
         import matplotlib.colors
 
         # setup specific stuff
-        self.jointNames = ['C', 'T1', 'T2', 'T3', 'I1', 'I2', 'I3', 'M1', 'M2', 'M3', 'R1', 'R2', 'R3', 'P1', 'P2', 'P3']
+        self.jointNames = ['C', 'T1', 'T2', 'T3', 'I1', 'I2', 'I3',
+                           'M1', 'M2', 'M3', 'R1', 'R2', 'R3', 'P1', 'P2', 'P3']
         self.jointColors = [matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 0, 0.0]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.6]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.8]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 1.0]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.6]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.8]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 1.0]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.6]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.8]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 1.0]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.6]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.8]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 1.0]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.00, 1, 0.6]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.00, 1, 0.8]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.00, 1, 1.0]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.33, 1, 0.6]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.33, 1, 0.8]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.33, 1, 1.0]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.50, 1, 0.6]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.50, 1, 0.8]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.50, 1, 1.0]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.66, 1, 0.6]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.66, 1, 0.8]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.66, 1, 1.0]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0],
                             matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 1.0]]]))[0, 0]]
         self.jointConnections = [[0, 1], [1, 2], [2, 3], [0, 4], [4, 5], [5, 6], [0, 7], [7, 8], [8, 9], [0, 10],
                                  [10, 11], [11, 12], [0, 13], [13, 14], [14, 15]]
         self.jointConnectionColors = [matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 1]]]))[0, 0],
-                                      matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 1]]]))[0, 0],
-                                      matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 1]]]))[0, 0],
-                                      matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 1]]]))[0, 0],
+                                      matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(
+                                          numpy.asarray([[[0.33, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 1]]]))[0, 0],
+                                      matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(
+                                          numpy.asarray([[[0.50, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 1]]]))[0, 0],
+                                      matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(
+                                          numpy.asarray([[[0.66, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 1]]]))[0, 0],
                                       matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 1]]]))[0, 0]]
 
         self.plotMaxJointDist = 80
@@ -750,7 +799,8 @@ class NYUHandposeEvaluation(HandposeEvaluation):
         :type joints: calculated joints
         """
 
-        super(NYUHandposeEvaluation, self).__init__(gt, joint, dolegend, linewidth)
+        super(NYUHandposeEvaluation, self).__init__(
+            gt, joint, dolegend, linewidth)
         import matplotlib.colors
 
         # setup specific stuff
@@ -759,81 +809,142 @@ class NYUHandposeEvaluation(HandposeEvaluation):
                                'I1', 'I2', 'I3', 'I4', 'I5', 'T1', 'T2', 'T3', 'T4', 'T5', 'C1', 'C2', 'C3',
                                'W1', 'W2', 'W3', 'W4']
             self.jointColors = [matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.2]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.3]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.4]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.6]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.8]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 1.0]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.2]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.3]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.4]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.6]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.8]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 1.0]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.2]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.3]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.4]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.6]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.8]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 1.0]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.2]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.3]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.4]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.6]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.8]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 1.0]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.2]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.3]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.4]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 1.0]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.0]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.0]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.0]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 0.7]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 0.7]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 1.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.00, 1, 0.3]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.00, 1, 0.4]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.00, 1, 0.6]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.00, 1, 0.8]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.00, 1, 1.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.33, 1, 0.2]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.33, 1, 0.3]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.33, 1, 0.4]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.33, 1, 0.6]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.33, 1, 0.8]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.33, 1, 1.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.50, 1, 0.2]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.50, 1, 0.3]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.50, 1, 0.4]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.50, 1, 0.6]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.50, 1, 0.8]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.50, 1, 1.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.66, 1, 0.2]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.66, 1, 0.3]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.66, 1, 0.4]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.66, 1, 0.6]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.66, 1, 0.8]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.66, 1, 1.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.83, 1, 0.2]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.83, 1, 0.3]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.83, 1, 0.4]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.83, 1, 1.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.00, 1, 0.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.00, 1, 0.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.00, 1, 0.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.16, 1, 0.7]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.16, 1, 0.7]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.16, 1, 1.0]]]))[0, 0],
                                 matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 1.0]]]))[0, 0]]
             self.jointConnections = [[33, 5], [5, 4], [4, 3], [3, 2], [2, 1], [1, 0],
-                                     [32, 11], [11, 10], [10, 9], [9, 8], [8, 7], [7, 6],
-                                     [32, 17], [17, 16], [16, 15], [15, 14], [14, 13], [13, 12],
-                                     [32, 23], [23, 22], [22, 21], [21, 20], [20, 19], [19, 18],
-                                     [34, 29], [29, 28], [28, 27], [27, 26], [26, 25], [25, 24],
+                                     [32, 11], [11, 10], [10, 9], [
+                                         9, 8], [8, 7], [7, 6],
+                                     [32, 17], [17, 16], [16, 15], [
+                                         15, 14], [14, 13], [13, 12],
+                                     [32, 23], [23, 22], [22, 21], [
+                                         21, 20], [20, 19], [19, 18],
+                                     [34, 29], [29, 28], [28, 27], [
+                                         27, 26], [26, 25], [25, 24],
                                      [34, 32], [34, 33], [33, 32],
                                      [34, 30], [34, 31], [35, 30], [35, 31]]
             self.jointConnectionColors = [matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.2]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.3]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.4]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 1]]]))[0, 0],
-                                          matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.2]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.3]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.4]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 1]]]))[0, 0],
-                                          matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.2]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.3]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.4]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 1]]]))[0, 0],
-                                          matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.2]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.3]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.4]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 1]]]))[0, 0],
-                                          matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.2]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.3]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.4]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 1]]]))[0, 0],
-                                          matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.0]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.0]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.0]]]))[0, 0],
-                                          matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 0.7]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 0.7]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 1.0]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 1.0]]]))[0, 0]]
+                                          matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.2]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.3]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.4]]]))[
+                0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 1]]]))[0, 0],
+                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.2]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.3]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.4]]]))[
+                0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 1]]]))[0, 0],
+                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.2]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.3]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.4]]]))[
+                0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 1]]]))[0, 0],
+                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.2]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.3]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.4]]]))[
+                0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 1]]]))[0, 0],
+                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.0]]]))[0, 0], matplotlib.colors.hsv_to_rgb(
+                                              numpy.asarray([[[0.00, 1, 0.0]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.0]]]))[0, 0],
+                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 0.7]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 0.7]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 1.0]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 1.0]]]))[0, 0]]
 
         elif joints == 'eval':
-            self.jointNames = ['P1', 'P2', 'R1', 'R2', 'M1', 'M2', 'I1', 'I2', 'T1', 'T2', 'T3', 'W1', 'W2', 'C']
+            self.jointNames = ['P1', 'P2', 'R1', 'R2', 'M1',
+                               'M2', 'I1', 'I2', 'T1', 'T2', 'T3', 'W1', 'W2', 'C']
             self.jointColors = [matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.7]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 1.0]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.7]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 1.0]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.7]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 1.0]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.7]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 1.0]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 1.0]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 0.7]]]))[0, 0],
-                                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 1.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.00, 1, 1.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.33, 1, 0.7]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.33, 1, 1.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.50, 1, 0.7]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.50, 1, 1.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.66, 1, 0.7]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.66, 1, 1.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.83, 1, 1.0]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.16, 1, 0.7]]]))[0, 0],
+                                matplotlib.colors.hsv_to_rgb(
+                                    numpy.asarray([[[0.16, 1, 1.0]]]))[0, 0],
                                 matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 0, 0.0]]]))[0, 0]]
             self.jointConnections = [[13, 1], [1, 0], [13, 3], [3, 2], [13, 5], [5, 4], [13, 7], [7, 6], [13, 10],
                                      [10, 9], [9, 8], [13, 11], [13, 12]]
             self.jointConnectionColors = [matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.7]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 1]]]))[0, 0],
-                                          matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.7]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 1]]]))[0, 0],
-                                          matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.7]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 1]]]))[0, 0],
-                                          matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.7]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 1]]]))[0, 0],
-                                          matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 1]]]))[0, 0],
-                                          matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 0.7]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 1]]]))[0, 0]]
+                                          matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.7]]]))[
+                0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 1]]]))[0, 0],
+                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.7]]]))[
+                0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 1]]]))[0, 0],
+                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.7]]]))[
+                0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 1]]]))[0, 0],
+                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(
+                                              numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 1]]]))[0, 0],
+                matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 0.7]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.16, 1, 1]]]))[0, 0]]
         else:
             raise ValueError("Unknown joint parameter")
         self.plotMaxJointDist = 80
@@ -863,41 +974,65 @@ class MSRAHandposeEvaluation(HandposeEvaluation):
         :type joints: calculated joints
         """
 
-        super(MSRAHandposeEvaluation, self).__init__(gt, joints, dolegend, linewidth)
+        super(MSRAHandposeEvaluation, self).__init__(
+            gt, joints, dolegend, linewidth)
         import matplotlib.colors
 
         # setup specific stuff
         self.jointNames = ['C', 'T1', 'T2', 'T3', 'T4', 'I1', 'I2', 'I3', 'I4', 'M1', 'M2', 'M3', 'M4', 'R1', 'R2',
                            'R3', 'R4', 'P1', 'P2', 'P3', 'P4']
         self.jointColors = [matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 0, 0.0]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.4]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.6]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.8]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 1.0]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.4]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.6]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.8]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 1.0]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.4]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.6]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.8]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 1.0]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.4]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.6]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.8]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 1.0]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.4]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0],
-                            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.00, 1, 0.4]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.00, 1, 0.6]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.00, 1, 0.8]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.00, 1, 1.0]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.33, 1, 0.4]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.33, 1, 0.6]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.33, 1, 0.8]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.33, 1, 1.0]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.50, 1, 0.4]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.50, 1, 0.6]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.50, 1, 0.8]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.50, 1, 1.0]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.66, 1, 0.4]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.66, 1, 0.6]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.66, 1, 0.8]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.66, 1, 1.0]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.83, 1, 0.4]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0],
+                            matplotlib.colors.hsv_to_rgb(
+                                numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0],
                             matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 1.0]]]))[0, 0]]
         self.jointConnections = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [0, 9], [9, 10],
-                                 [10, 11], [11, 12], [0, 13], [13, 14], [14, 15], [15, 16], [0, 17], [17, 18], [18, 19],
+                                 [10, 11], [11, 12], [0, 13], [13, 14], [14, 15], [
+                                     15, 16], [0, 17], [17, 18], [18, 19],
                                  [19, 20]]
         self.jointConnectionColors = [matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.4]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.00, 1, 1]]]))[0, 0],
-                                      matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.4]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 1]]]))[0, 0],
-                                      matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.4]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 1]]]))[0, 0],
-                                      matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.4]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 1]]]))[0, 0],
-                                      matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.4]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 1]]]))[0, 0]]
+                                      matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.4]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.6]]]))[
+            0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.33, 1, 1]]]))[0, 0],
+            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.4]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.6]]]))[
+            0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.50, 1, 1]]]))[0, 0],
+            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.4]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.6]]]))[
+            0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.66, 1, 1]]]))[0, 0],
+            matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.4]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.6]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 0.8]]]))[0, 0], matplotlib.colors.hsv_to_rgb(numpy.asarray([[[0.83, 1, 1]]]))[0, 0]]
 
         self.plotMaxJointDist = 80
         self.VTKviewport = [0, 0, 180, 40, 40]

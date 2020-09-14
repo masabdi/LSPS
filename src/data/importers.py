@@ -161,8 +161,10 @@ class DepthImporter(object):
     def depthToPCL(dpt, T, background_val=0.):
 
         # get valid points and transform
-        pts = np.asarray(np.where(~np.isclose(dpt, background_val))).transpose()
-        pts = np.concatenate([pts[:, [1, 0]] + 0.5, np.ones((pts.shape[0], 1), dtype='float32')], axis=1)
+        pts = np.asarray(np.where(~np.isclose(
+            dpt, background_val))).transpose()
+        pts = np.concatenate(
+            [pts[:, [1, 0]] + 0.5, np.ones((pts.shape[0], 1), dtype='float32')], axis=1)
         pts = np.dot(np.linalg.inv(np.asarray(T)), pts.T).T
         pts = (pts[:, 0:2] / pts[:, 2][:, None]).reshape((pts.shape[0], 2))
 
@@ -182,7 +184,8 @@ class DepthImporter(object):
                 from net.scalenet import ScaleNet, ScaleNetParams
                 comrefNetParams = ScaleNetParams(type=5, nChan=1, wIn=128, hIn=128, batchSize=1, resizeFactor=2,
                                                  numJoints=1, nDims=3)
-                self.refineNet = ScaleNet(np.random.RandomState(23455), cfgParams=comrefNetParams)
+                self.refineNet = ScaleNet(np.random.RandomState(
+                    23455), cfgParams=comrefNetParams)
                 self.refineNet.load(net)
             else:
                 raise EnvironmentError("File not found: {}".format(net))
@@ -200,7 +203,8 @@ class ICVLImporter(DepthImporter):
         :return:
         """
 
-        super(ICVLImporter, self).__init__(241.42, 241.42, 160., 120., hand)  # see Qian et.al.
+        # see Qian et.al.
+        super(ICVLImporter, self).__init__(241.42, 241.42, 160., 120., hand)
 
         self.depth_map_size = (320, 240)
         self.basepath = basepath
@@ -212,7 +216,8 @@ class ICVLImporter(DepthImporter):
         self.default_cubes = {'train': (250, 250, 250),
                               'test_seq_1': (250, 250, 250),
                               'test_seq_2': (250, 250, 250)}
-        self.sides = {'train': 'right', 'test_seq1': 'right', 'test_seq_2': 'right'}
+        self.sides = {'train': 'right',
+                      'test_seq1': 'right', 'test_seq_2': 'right'}
 
     def loadDepthMap(self, filename):
         """
@@ -233,7 +238,7 @@ class ICVLImporter(DepthImporter):
         :return: value
         """
         return 32001
-        
+
     def loadSequence(self, seqName, subSeq=None, Nmax=float('inf'), shuffle=False, rng=None, docom=False, cube=None):
         """
         Load an image sequence from the dataset
@@ -258,7 +263,8 @@ class ICVLImporter(DepthImporter):
                                                                HandDetector.detectionModeToString(docom, self.refineNet is not None), config['cube'][0])
         else:
             pickleCache = '{}/{}_{}_{}_{}_{}_{}_cache.pkl'.format(self.cacheDir, self.__class__.__name__, seqName,
-                                                                  ''.join(subSeq), self.hand,
+                                                                  ''.join(
+                                                                      subSeq), self.hand,
                                                                   HandDetector.detectionModeToString(docom, self.refineNet is not None), config['cube'][0])
         if self.useCache:
             if os.path.isfile(pickleCache):
@@ -324,12 +330,13 @@ class ICVLImporter(DepthImporter):
         trainlabels = '{}/{}.txt'.format(self.basepath, seqName)
 
         inputfile = open(trainlabels)
-        
+
         txt = 'Loading {}'.format(seqName)
-        pbar = pb.ProgressBar(maxval=len(inputfile.readlines()), widgets=[txt, pb.Percentage(), pb.Bar()])
+        pbar = pb.ProgressBar(maxval=len(inputfile.readlines()), widgets=[
+                              txt, pb.Percentage(), pb.Bar()])
         pbar.start()
         inputfile.seek(0)
-        
+
         data = []
         i = 0
         for line in inputfile:
@@ -371,16 +378,15 @@ class ICVLImporter(DepthImporter):
                     raise NotImplementedError()
                     dpt = dpt[:, ::-1]
 
-
             # joints in image coordinates
             gtorig = np.zeros((self.numJoints, 3), np.float32)
             for joint in range(self.numJoints):
                 for xyz in range(0, 3):
                     gtorig[joint, xyz] = part[joint*3+xyz+1]
 
-	    if True: #flip
-		dpt = np.fliplr(dpt)
-		gtorig[:, 0] = self.depth_map_size[0] - gtorig[:, 0]
+            if True:  # flip
+                dpt = np.fliplr(dpt)
+                gtorig[:, 0] = self.depth_map_size[0] - gtorig[:, 0]
 
             # normalized joints in 3D coordinates
             gt3Dorig = self.jointsImgTo3D(gtorig)
@@ -388,13 +394,15 @@ class ICVLImporter(DepthImporter):
             # self.showAnnotatedDepth(DepthFrame(dpt,gtorig,gtorig,0,gt3Dorig,gt3Dcrop,0,dptFileName,subSeqName,''))
 
             # Detect hand
-            hd = HandDetector(dpt, self.fx, self.fy, refineNet=self.refineNet, importer=self)
+            hd = HandDetector(dpt, self.fx, self.fy,
+                              refineNet=self.refineNet, importer=self)
             if not hd.checkImage(1):
                 print("Skipping image {}, no content".format(dptFileName))
                 i += 1
                 continue
             try:
-                dpt, M, com = hd.cropArea3D(com=gtorig[self.crop_joint_idx], size=config['cube'], docom=docom)
+                dpt, M, com = hd.cropArea3D(
+                    com=gtorig[self.crop_joint_idx], size=config['cube'], docom=docom)
             except UserWarning:
                 print("Skipping image {}, no hand detected".format(dptFileName))
                 i += 1
@@ -404,14 +412,14 @@ class ICVLImporter(DepthImporter):
             gt3Dcrop = gt3Dorig - com3D  # normalize to com
             gtcrop = transformPoints2D(gtorig, M)
 
-            #print("{}".format(gt3Dorig))
+            # print("{}".format(gt3Dorig))
             #self.showAnnotatedDepth(DepthFrame(dpt,gtorig,gtcrop,M,gt3Dorig,gt3Dcrop,com3D,dptFileName,subSeqName,'', {}))
 
             data.append(DepthFrame(dpt.astype(np.float32), gtorig, gtcrop, M, gt3Dorig, gt3Dcrop, com3D, dptFileName,
                                    subSeqName, 'left', {}))
             pbar.update(i)
             i += 1
-                   
+
         inputfile.close()
         pbar.finish()
         print("Loaded {} samples.".format(len(data)))
@@ -419,7 +427,8 @@ class ICVLImporter(DepthImporter):
         if self.useCache:
             print("Save cache data to {}".format(pickleCache))
             f = open(pickleCache, 'wb')
-            cPickle.dump((seqName, data, config), f, protocol=cPickle.HIGHEST_PROTOCOL)
+            cPickle.dump((seqName, data, config), f,
+                         protocol=cPickle.HIGHEST_PROTOCOL)
             f.close()
 
         # shuffle data
@@ -483,10 +492,10 @@ class ICVLImporter(DepthImporter):
         for line in inputfile:
             part = line.split(' ')
             # joints in image coordinates
-            ev = np.zeros((self.numJoints,2),np.float32)
+            ev = np.zeros((self.numJoints, 2), np.float32)
             for joint in range(ev.shape[0]):
                 for xyz in range(0, 2):
-                    ev[joint,xyz] = part[joint*3+xyz+off]
+                    ev[joint, xyz] = part[joint*3+xyz+off]
 
             data.append(ev)
 
@@ -530,10 +539,11 @@ class ICVLImporter(DepthImporter):
         ax.format_coord = format_coord
 
         for i in range(frame.gtcrop.shape[0]):
-            ax.annotate(str(i), (int(frame.gtcrop[i, 0]), int(frame.gtcrop[i, 1])))
+            ax.annotate(
+                str(i), (int(frame.gtcrop[i, 0]), int(frame.gtcrop[i, 1])))
 
         plt.show()
-	#plt.savefig('foo.png')
+        # plt.savefig('foo.png')
 
     def showAnnotatedDepth2(self, dpt1, gtcrop1, dpt2, gtcrop2):
         """
@@ -554,26 +564,26 @@ class ICVLImporter(DepthImporter):
 
         ax1.plot(gtcrop1[0:4, 0], gtcrop1[0:4, 1], c='r')
         ax1.plot(np.hstack((gtcrop1[0, 0], gtcrop1[4:7, 0])),
-                np.hstack((gtcrop1[0, 1], gtcrop1[4:7, 1])), c='r')
+                 np.hstack((gtcrop1[0, 1], gtcrop1[4:7, 1])), c='r')
         ax1.plot(np.hstack((gtcrop1[0, 0], gtcrop1[7:10, 0])),
-                np.hstack((gtcrop1[0, 1], gtcrop1[7:10, 1])), c='r')
+                 np.hstack((gtcrop1[0, 1], gtcrop1[7:10, 1])), c='r')
         ax1.plot(np.hstack((gtcrop1[0, 0], gtcrop1[10:13, 0])),
-                np.hstack((gtcrop1[0, 1], gtcrop1[10:13, 1])), c='r')
+                 np.hstack((gtcrop1[0, 1], gtcrop1[10:13, 1])), c='r')
         ax1.plot(np.hstack((gtcrop1[0, 0], gtcrop1[13:16, 0])),
-                np.hstack((gtcrop1[0, 1], gtcrop1[13:16, 1])), c='r')
+                 np.hstack((gtcrop1[0, 1], gtcrop1[13:16, 1])), c='r')
 
         ax2.imshow(dpt2, cmap=matplotlib.cm.jet, interpolation='nearest')
         ax2.scatter(gtcrop2[:, 0], gtcrop2[:, 1])
 
         ax2.plot(gtcrop2[0:4, 0], gtcrop2[0:4, 1], c='r')
         ax2.plot(np.hstack((gtcrop2[0, 0], gtcrop2[4:7, 0])),
-                np.hstack((gtcrop2[0, 1], gtcrop2[4:7, 1])), c='r')
+                 np.hstack((gtcrop2[0, 1], gtcrop2[4:7, 1])), c='r')
         ax2.plot(np.hstack((gtcrop2[0, 0], gtcrop2[7:10, 0])),
-                np.hstack((gtcrop2[0, 1], gtcrop2[7:10, 1])), c='r')
+                 np.hstack((gtcrop2[0, 1], gtcrop2[7:10, 1])), c='r')
         ax2.plot(np.hstack((gtcrop2[0, 0], gtcrop2[10:13, 0])),
-                np.hstack((gtcrop2[0, 1], gtcrop2[10:13, 1])), c='r')
+                 np.hstack((gtcrop2[0, 1], gtcrop2[10:13, 1])), c='r')
         ax2.plot(np.hstack((gtcrop2[0, 0], gtcrop2[13:16, 0])),
-                np.hstack((gtcrop2[0, 1], gtcrop2[13:16, 1])), c='r')
+                 np.hstack((gtcrop2[0, 1], gtcrop2[13:16, 1])), c='r')
 
         def format_coord(x, y):
             numrows, numcols = dpt1.shape
@@ -592,8 +602,7 @@ class ICVLImporter(DepthImporter):
             ax2.annotate(str(i), (int(gtcrop2[i, 0]), int(gtcrop2[i, 1])))
 
         plt.show()
-	#plt.savefig('foo.png')
-
+        # plt.savefig('foo.png')
 
 
 class MSRA15Importer(DepthImporter):
@@ -614,7 +623,8 @@ class MSRA15Importer(DepthImporter):
         :return:
         """
 
-        super(MSRA15Importer, self).__init__(241.42, 241.42, 160., 120., hand)  # see Sun et.al.
+        # see Sun et.al.
+        super(MSRA15Importer, self).__init__(241.42, 241.42, 160., 120., hand)
 
         self.depth_map_size = (320, 240)
         self.basepath = basepath
@@ -653,7 +663,8 @@ class MSRA15Importer(DepthImporter):
             bottom = struct.unpack('i', f.read(4))[0]
             patch = np.fromfile(f, dtype='float32', sep="")
             imgdata = np.zeros((height, width), dtype='float32')
-            imgdata[top:bottom, left:right] = patch.reshape([bottom-top, right-left])
+            imgdata[top:bottom, left:right] = patch.reshape(
+                [bottom-top, right-left])
 
         return imgdata
 
@@ -687,7 +698,7 @@ class MSRA15Importer(DepthImporter):
                                                                HandDetector.detectionModeToString(docom, self.refineNet is not None), config['cube'][0])
         else:
             pickleCache = '{}/{}_{}_{}_{}_{}_{}_cache.pkl'.format(self.cacheDir, self.__class__.__name__, seqName, self.hand,
-                                                               ''.join(subSeq), HandDetector.detectionModeToString(docom, self.refineNet is not None), config['cube'][0])
+                                                                  ''.join(subSeq), HandDetector.detectionModeToString(docom, self.refineNet is not None), config['cube'][0])
         if self.useCache & os.path.isfile(pickleCache):
             print("Loading cache data from {}".format(pickleCache))
             f = open(pickleCache, 'rb')
@@ -706,11 +717,13 @@ class MSRA15Importer(DepthImporter):
 
         # Load the dataset
         objdir = '{}/{}/'.format(self.basepath, seqName)
-        subdirs = sorted([name for name in os.listdir(objdir) if os.path.isdir(os.path.join(objdir, name))])
+        subdirs = sorted([name for name in os.listdir(objdir)
+                          if os.path.isdir(os.path.join(objdir, name))])
 
         txt = 'Loading {}'.format(seqName)
         nImgs = sum([len(files) for r, d, files in os.walk(objdir)]) // 2
-        pbar = pb.ProgressBar(maxval=nImgs, widgets=[txt, pb.Percentage(), pb.Bar()])
+        pbar = pb.ProgressBar(maxval=nImgs, widgets=[
+                              txt, pb.Percentage(), pb.Bar()])
         pbar.start()
 
         data = []
@@ -739,7 +752,8 @@ class MSRA15Importer(DepthImporter):
                 line = inputfile.readline()
                 part = line.split(' ')
 
-                dptFileName = '{}/{}/{}_depth.bin'.format(objdir, subdir, str(i).zfill(6))
+                dptFileName = '{}/{}/{}_depth.bin'.format(
+                    objdir, subdir, str(i).zfill(6))
 
                 if not os.path.isfile(dptFileName):
                     print("File {} does not exist!".format(dptFileName))
@@ -771,13 +785,15 @@ class MSRA15Importer(DepthImporter):
                 # print gt3D
                 # self.showAnnotatedDepth(DepthFrame(dpt,gtorig,gtorig,0,gt3Dorig,gt3Dcrop,com3D,dptFileName,'',''))
                 # Detect hand
-                hd = HandDetector(dpt, self.fx, self.fy, refineNet=self.refineNet, importer=self)
+                hd = HandDetector(dpt, self.fx, self.fy,
+                                  refineNet=self.refineNet, importer=self)
                 if not hd.checkImage(1.):
                     print("Skipping image {}, no content".format(dptFileName))
                     continue
 
                 try:
-                    dpt, M, com = hd.cropArea3D(com=gtorig[self.crop_joint_idx], size=config['cube'], docom=docom)
+                    dpt, M, com = hd.cropArea3D(
+                        com=gtorig[self.crop_joint_idx], size=config['cube'], docom=docom)
                 except UserWarning:
                     print("Skipping image {}, no hand detected".format(dptFileName))
                     continue
@@ -803,7 +819,8 @@ class MSRA15Importer(DepthImporter):
         if self.useCache:
             print("Save cache data to {}".format(pickleCache))
             f = open(pickleCache, 'wb')
-            cPickle.dump((seqName, data, config), f, protocol=cPickle.HIGHEST_PROTOCOL)
+            cPickle.dump((seqName, data, config), f,
+                         protocol=cPickle.HIGHEST_PROTOCOL)
             f.close()
 
         # shuffle data
@@ -898,17 +915,21 @@ class MSRA15Importer(DepthImporter):
         import matplotlib
         import matplotlib.pyplot as plt
 
-        print("img min {}, max {}".format(frame.dpt.min(),frame.dpt.max()))
+        print("img min {}, max {}".format(frame.dpt.min(), frame.dpt.max()))
         fig = plt.figure()
         ax = fig.add_subplot(111)
         ax.imshow(frame.dpt, cmap=matplotlib.cm.jet, interpolation='nearest')
         ax.scatter(frame.gtcrop[:, 0], frame.gtcrop[:, 1])
 
         ax.plot(frame.gtcrop[0:5, 0], frame.gtcrop[0:5, 1], c='r')
-        ax.plot(np.hstack((frame.gtcrop[0, 0], frame.gtcrop[5:9, 0])), np.hstack((frame.gtcrop[0, 1], frame.gtcrop[5:9, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[0, 0], frame.gtcrop[9:13, 0])), np.hstack((frame.gtcrop[0, 1], frame.gtcrop[9:13, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[0, 0], frame.gtcrop[13:17, 0])), np.hstack((frame.gtcrop[0, 1], frame.gtcrop[13:17, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[0, 0], frame.gtcrop[17:21, 0])), np.hstack((frame.gtcrop[0, 1], frame.gtcrop[17:21, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[0, 0], frame.gtcrop[5:9, 0])), np.hstack(
+            (frame.gtcrop[0, 1], frame.gtcrop[5:9, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[0, 0], frame.gtcrop[9:13, 0])), np.hstack(
+            (frame.gtcrop[0, 1], frame.gtcrop[9:13, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[0, 0], frame.gtcrop[13:17, 0])), np.hstack(
+            (frame.gtcrop[0, 1], frame.gtcrop[13:17, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[0, 0], frame.gtcrop[17:21, 0])), np.hstack(
+            (frame.gtcrop[0, 1], frame.gtcrop[17:21, 1])), c='r')
 
         def format_coord(x, y):
             numrows, numcols = frame.dpt.shape
@@ -916,13 +937,14 @@ class MSRA15Importer(DepthImporter):
             row = int(y+0.5)
             if 0 <= col < numcols and 0 <= row < numrows:
                 z = frame.dpt[row, col]
-                return 'x=%1.4f, y=%1.4f, z=%1.4f'%(x, y, z)
+                return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, z)
             else:
-                return 'x=%1.4f, y=%1.4f'%(x, y)
+                return 'x=%1.4f, y=%1.4f' % (x, y)
         ax.format_coord = format_coord
 
         for i in range(frame.gtcrop.shape[0]):
-            ax.annotate(str(i), (int(frame.gtcrop[i, 0]), int(frame.gtcrop[i, 1])))
+            ax.annotate(
+                str(i), (int(frame.gtcrop[i, 0]), int(frame.gtcrop[i, 1])))
 
         plt.show()
 
@@ -930,8 +952,10 @@ class MSRA15Importer(DepthImporter):
     def depthToPCL(dpt, T, background_val=0.):
 
         # get valid points and transform
-        pts = np.asarray(np.where(~np.isclose(dpt, background_val))).transpose()
-        pts = np.concatenate([pts[:, [1, 0]] + 0.5, np.ones((pts.shape[0], 1), dtype='float32')], axis=1)
+        pts = np.asarray(np.where(~np.isclose(
+            dpt, background_val))).transpose()
+        pts = np.concatenate(
+            [pts[:, [1, 0]] + 0.5, np.ones((pts.shape[0], 1), dtype='float32')], axis=1)
         pts = np.dot(np.linalg.inv(np.asarray(T)), pts.T).T
         pts = (pts[:, 0:2] / pts[:, 2][:, None]).reshape((pts.shape[0], 2))
 
@@ -945,12 +969,13 @@ class MSRA15Importer(DepthImporter):
         # combine x,y,depth
         return np.column_stack((row, col, depth))
 
+
 class NYUImporter(DepthImporter):
     """
     provide functionality to load data from the NYU hand dataset
     """
 
-    def __init__(self, basepath, useCache=True, cacheDir='./cache/', refineNet=None, 
+    def __init__(self, basepath, useCache=True, cacheDir='./cache/', refineNet=None,
                  allJoints=False, hand=None, com_idx=32, cube_size=300):
         """
         Constructor
@@ -981,7 +1006,8 @@ class NYUImporter(DepthImporter):
         self.sides = {'train': 'right', 'test_1': 'right', 'test_2': 'right', 'test': 'right', 'train_synth': 'right',
                       'test_synth_1': 'right', 'test_synth_2': 'right', 'test_synth': 'right'}
         # joint indices used for evaluation of Tompson et al.
-        self.restrictedJointsEval = [0, 3, 6, 9, 12, 15, 18, 21, 24, 25, 27, 30, 31, 32]
+        self.restrictedJointsEval = [0, 3, 6, 9,
+                                     12, 15, 18, 21, 24, 25, 27, 30, 31, 32]
         self.refineNet = refineNet
 
     def loadDepthMap(self, filename):
@@ -1024,9 +1050,9 @@ class NYUImporter(DepthImporter):
             assert len(cube) == 3
             config = {'cube': cube}
 
-        pickleCache = '{}/{}_{}_{}_{}_{}_{}_{}__cache.pkl'.format(self.cacheDir, self.__class__.__name__, seqName, 
-                                                                 self.hand, self.allJoints, self.crop_joint_idx, 
-                                                                 HandDetector.detectionModeToString(docom, self.refineNet is not None), config['cube'][0])
+        pickleCache = '{}/{}_{}_{}_{}_{}_{}_{}__cache.pkl'.format(self.cacheDir, self.__class__.__name__, seqName,
+                                                                  self.hand, self.allJoints, self.crop_joint_idx,
+                                                                  HandDetector.detectionModeToString(docom, self.refineNet is not None), config['cube'][0])
         if self.useCache:
             if os.path.isfile(pickleCache):
                 print("Loading cache data from {}".format(pickleCache))
@@ -1046,9 +1072,10 @@ class NYUImporter(DepthImporter):
         self.loadRefineNetLazy(self.refineNet)
 
         # Load the dataset
-        objdir = '{}/{}/'.format(self.basepath, 'train' if 'train' in seqName else seqName)
-        trainlabels = '{}/{}/joint_data.mat'.format(self.basepath, \
-						'train' if 'train' in seqName else seqName)
+        objdir = '{}/{}/'.format(self.basepath,
+                                 'train' if 'train' in seqName else seqName)
+        trainlabels = '{}/{}/joint_data.mat'.format(self.basepath,
+                                                    'train' if 'train' in seqName else seqName)
 
         mat = scipy.io.loadmat(trainlabels)
         joints3D = mat['joint_xyz'][0]
@@ -1061,14 +1088,15 @@ class NYUImporter(DepthImporter):
         self.numJoints = len(eval_idxs)
 
         txt = 'Loading {}'.format(seqName)
-        pbar = pb.ProgressBar(maxval=joints3D.shape[0], widgets=[txt, pb.Percentage(), pb.Bar()])
+        pbar = pb.ProgressBar(maxval=joints3D.shape[0], widgets=[
+                              txt, pb.Percentage(), pb.Bar()])
         pbar.start()
 
         data = []
         i = 0
         for line in range(joints3D.shape[0]):
-            dptFileName = '{0:s}/{1}depth_1_{2:07d}.png'.format(objdir, \
-				'synth' if 'synth' in seqName else '', line+1)
+            dptFileName = '{0:s}/{1}depth_1_{2:07d}.png'.format(objdir,
+                                                                'synth' if 'synth' in seqName else '', line+1)
 
             if not os.path.isfile(dptFileName):
                 print("File {} does not exist!".format(dptFileName))
@@ -1105,13 +1133,15 @@ class NYUImporter(DepthImporter):
             # self.showAnnotatedDepth(DepthFrame(dpt,gtorig,gtorig,0,gt3Dorig,gt3Dorig,0,dptFileName,'','', {}))
 
             # Detect hand
-            hd = HandDetector(dpt, self.fx, self.fy, refineNet=self.refineNet, importer=self)
+            hd = HandDetector(dpt, self.fx, self.fy,
+                              refineNet=self.refineNet, importer=self)
             if not hd.checkImage(1):
                 print("Skipping image {}, no content".format(dptFileName))
                 i += 1
                 continue
             try:
-                dpt, M, com = hd.cropArea3D(com=gtorig[self.crop_joint_idx], size=config['cube'], docom=docom)
+                dpt, M, com = hd.cropArea3D(
+                    com=gtorig[self.crop_joint_idx], size=config['cube'], docom=docom)
             except UserWarning:
                 print("Skipping image {}, no hand detected".format(dptFileName))
                 i += 1
@@ -1122,7 +1152,7 @@ class NYUImporter(DepthImporter):
             gtcrop = transformPoints2D(gtorig, M)
 
             # print("{}".format(gt3Dorig))
-	    #if i % 100 == 0:
+            # if i % 100 == 0:
             #  self.showAnnotatedDepth(DepthFrame(dpt,gtorig,gtcrop,M,gt3Dorig,gt3Dcrop,com3D,dptFileName,'','',{}))
 
             data.append(DepthFrame(dpt.astype(np.float32), gtorig, gtcrop, M, gt3Dorig, gt3Dcrop, com3D, dptFileName,
@@ -1140,7 +1170,8 @@ class NYUImporter(DepthImporter):
         if self.useCache:
             print("Save cache data to {}".format(pickleCache))
             f = open(pickleCache, 'wb')
-            cPickle.dump((seqName, data, config), f, protocol=cPickle.HIGHEST_PROTOCOL)
+            cPickle.dump((seqName, data, config), f,
+                         protocol=cPickle.HIGHEST_PROTOCOL)
             f.close()
 
         # shuffle data
@@ -1165,7 +1196,8 @@ class NYUImporter(DepthImporter):
 
             data = []
             for dat in range(min(joints.shape[0], gt.shape[0])):
-                fname = '{0:s}/depth_1_{1:07d}.png'.format(os.path.split(filename)[0], dat+1)
+                fname = '{0:s}/depth_1_{1:07d}.png'.format(
+                    os.path.split(filename)[0], dat+1)
                 if not os.path.isfile(fname):
                     continue
                 dm = self.loadDepthMap(fname)
@@ -1181,9 +1213,10 @@ class NYUImporter(DepthImporter):
                     jt += 1
 
                 for jt in range(ev.shape[0]):
-                    #if ev[jt,2] == 2001. or ev[jt,2] == 0.:
+                    # if ev[jt,2] == 2001. or ev[jt,2] == 0.:
                     if abs(ev[jt, 2] - gt[dat, 13, 2]) > 150.:
-                        ev[jt, 2] = gt[dat, jt, 2]#np.clip(ev[jt,2],gt[dat,13,2]-150.,gt[dat,13,2]+150.) # set to groundtruth if unknown
+                        # np.clip(ev[jt,2],gt[dat,13,2]-150.,gt[dat,13,2]+150.) # set to groundtruth if unknown
+                        ev[jt, 2] = gt[dat, jt, 2]
 
                 ev3D = self.jointsImgTo3D(ev)
                 data.append(ev3D)
@@ -1338,27 +1371,35 @@ class NYUImporter(DepthImporter):
         ax.imshow(frame.dpt, cmap=matplotlib.cm.jet, interpolation='nearest')
         ax.scatter(frame.gtcrop[:, 0], frame.gtcrop[:, 1])
 
-        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[1::-1, 0])), np.hstack((frame.gtcrop[13, 1], frame.gtcrop[1::-1, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[3:1:-1, 0])), np.hstack((frame.gtcrop[13, 1], frame.gtcrop[3:1:-1, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[5:3:-1, 0])), np.hstack((frame.gtcrop[13, 1], frame.gtcrop[5:3:-1, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[7:5:-1, 0])), np.hstack((frame.gtcrop[13, 1], frame.gtcrop[7:5:-1, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[10:7:-1, 0])), np.hstack((frame.gtcrop[13, 1], frame.gtcrop[10:7:-1, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[11, 0])), np.hstack((frame.gtcrop[13, 1], frame.gtcrop[11, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[12, 0])), np.hstack((frame.gtcrop[13, 1], frame.gtcrop[12, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[1::-1, 0])),
+                np.hstack((frame.gtcrop[13, 1], frame.gtcrop[1::-1, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[3:1:-1, 0])),
+                np.hstack((frame.gtcrop[13, 1], frame.gtcrop[3:1:-1, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[5:3:-1, 0])),
+                np.hstack((frame.gtcrop[13, 1], frame.gtcrop[5:3:-1, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[7:5:-1, 0])),
+                np.hstack((frame.gtcrop[13, 1], frame.gtcrop[7:5:-1, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[10:7:-1, 0])), np.hstack(
+            (frame.gtcrop[13, 1], frame.gtcrop[10:7:-1, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[11, 0])), np.hstack(
+            (frame.gtcrop[13, 1], frame.gtcrop[11, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[12, 0])), np.hstack(
+            (frame.gtcrop[13, 1], frame.gtcrop[12, 1])), c='r')
 
         def format_coord(x, y):
             numrows, numcols = frame.dpt.shape
             col = int(x+0.5)
             row = int(y+0.5)
-            if col>=0 and col<numcols and row>=0 and row<numrows:
-                z = frame.dpt[row,col]
+            if col >= 0 and col < numcols and row >= 0 and row < numrows:
+                z = frame.dpt[row, col]
                 return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, z)
             else:
                 return 'x=%1.4f, y=%1.4f' % (x, y)
         ax.format_coord = format_coord
 
         for i in range(frame.gtcrop.shape[0]):
-            ax.annotate(str(i), (int(frame.gtcrop[i, 0]), int(frame.gtcrop[i, 1])))
+            ax.annotate(
+                str(i), (int(frame.gtcrop[i, 0]), int(frame.gtcrop[i, 1])))
 
         plt.show()
         plt.show(block=True)
@@ -1367,8 +1408,10 @@ class NYUImporter(DepthImporter):
     def depthToPCL(dpt, T, background_val=0.):
 
         # get valid points and transform
-        pts = np.asarray(np.where(~np.isclose(dpt, background_val))).transpose()
-        pts = np.concatenate([pts[:, [1, 0]] + 0.5, np.ones((pts.shape[0], 1), dtype='float32')], axis=1)
+        pts = np.asarray(np.where(~np.isclose(
+            dpt, background_val))).transpose()
+        pts = np.concatenate(
+            [pts[:, [1, 0]] + 0.5, np.ones((pts.shape[0], 1), dtype='float32')], axis=1)
         pts = np.dot(np.linalg.inv(np.asarray(T)), pts.T).T
         pts = (pts[:, 0:2] / pts[:, 2][:, None]).reshape((pts.shape[0], 2))
 
@@ -1388,7 +1431,7 @@ class POSTImporter(DepthImporter):
     provide functionality to load data from the POST dataset
     """
 
-    def __init__(self, basepath, useCache=True, cacheDir='./cache/', refineNet=None, 
+    def __init__(self, basepath, useCache=True, cacheDir='./cache/', refineNet=None,
                  allJoints=False, hand=None, com_idx=32, cube_size=300):
         """
         Constructor
@@ -1396,8 +1439,8 @@ class POSTImporter(DepthImporter):
         :return:
         """
 
-        super(POSTImporter, self).__init__(568.2585063980484, 568.6191815994941,\
-					   317.5252035537242, 248.5884501249385, hand)
+        super(POSTImporter, self).__init__(568.2585063980484, 568.6191815994941,
+                                           317.5252035537242, 248.5884501249385, hand)
 
         self.depth_map_size = (640, 480)
         self.basepath = basepath
@@ -1407,7 +1450,7 @@ class POSTImporter(DepthImporter):
         self.numJoints = 18
         self.default_cubes = {'train': (2000, 2000, 2000),
                               'synth': (2000, 2000, 2000),
-			      'test': (2000, 2000, 2000)}
+                              'test': (2000, 2000, 2000)}
         self.sides = {'train': 'right', 'synth': 'right', 'test': 'right'}
         # joint indices used for evaluation of Tompson et al.
         self.refineNet = refineNet
@@ -1419,19 +1462,19 @@ class POSTImporter(DepthImporter):
         :return: image data of depth image
         """
         img = np.float32(cv2.imread(filename, -1))
-	if synth:
-            lbl = np.float32(cv2.imread(filename.replace('dmaps', 'lmaps')\
-						.replace('_d_', '_l_'), -1))
-	elif False:
-	    pass
-            #lbl = np.float32(cv2.imread(filename.replace('dmaps', 'lmaps')\
-						#.replace('_d_', '_l_'), -1))
-	    lbl = [ np.loadtxt(open(filename.replace('.png', '_2d.txt'))), \
-			np.loadtxt(open(filename.replace('.png', '_3d.txt'))) ]
-	    #print(lbl[0].shape, lbl[1].shape,)
+        if synth:
+            lbl = np.float32(cv2.imread(filename.replace('dmaps', 'lmaps')
+                                                .replace('_d_', '_l_'), -1))
+        elif False:
+            pass
+            # lbl = np.float32(cv2.imread(filename.replace('dmaps', 'lmaps')\
+            # .replace('_d_', '_l_'), -1))
+            lbl = [np.loadtxt(open(filename.replace('.png', '_2d.txt'))),
+                   np.loadtxt(open(filename.replace('.png', '_3d.txt')))]
+            #print(lbl[0].shape, lbl[1].shape,)
         else:
-            lbl = cv2.cvtColor(cv2.imread(filename.replace('dmaps', 'lmaps'), 1),\
-						cv2.COLOR_BGR2HSV)
+            lbl = cv2.cvtColor(cv2.imread(filename.replace('dmaps', 'lmaps'), 1),
+                               cv2.COLOR_BGR2HSV)
         return img, lbl
 
     def getDepthMapNV(self):
@@ -1440,42 +1483,45 @@ class POSTImporter(DepthImporter):
         :return: value
         """
         return 32001
+
     def prepareSamples(self, dpt, lbl, synth=True):
 
         if synth:
-          dpt[dpt == 10000] = 0.
-          lbl_ids = [1,2,3,4,6,7,8,9,12,16,17,18,19,20,24,25,26,27]
-          gtorig = np.array(ndimage.measurements.center_of_mass(lbl, lbl, lbl_ids))
-	  gtorig = np.fliplr(np.floor(gtorig))
-          zs = np.array([np.nanmean(dpt[lbl == lbl_ids[j]]) for j in range(len(lbl_ids))])
-          gtorig = np.floor(np.concatenate((gtorig, np.expand_dims(zs,1)),axis=1))
+            dpt[dpt == 10000] = 0.
+            lbl_ids = [1, 2, 3, 4, 6, 7, 8, 9, 12,
+                       16, 17, 18, 19, 20, 24, 25, 26, 27]
+            gtorig = np.array(
+                ndimage.measurements.center_of_mass(lbl, lbl, lbl_ids))
+            gtorig = np.fliplr(np.floor(gtorig))
+            zs = np.array([np.nanmean(dpt[lbl == lbl_ids[j]])
+                           for j in range(len(lbl_ids))])
+            gtorig = np.floor(np.concatenate(
+                (gtorig, np.expand_dims(zs, 1)), axis=1))
 
-          return dpt, gtorig, self.jointsImgTo3D(gtorig)
+            return dpt, gtorig, self.jointsImgTo3D(gtorig)
         elif False:
-          dpt[dpt == 65535] = 0.
-	  print('******', lbl[1])
-	  gtorig = np.zeros(lbl[1].shape)
-	  gtorig[:,0] = lbl[1][:,0] * dpt.shape[1]
-	  gtorig[:,1] = 1 - lbl[1][:,1]
-	  gtorig[:,1] *= dpt.shape[0]
-	  gtorig[:,2] = lbl[1][:,2]
-          return dpt, gtorig, self.jointsImgTo3D(gtorig)
+            dpt[dpt == 65535] = 0.
+            print('******', lbl[1])
+            gtorig = np.zeros(lbl[1].shape)
+            gtorig[:, 0] = lbl[1][:, 0] * dpt.shape[1]
+            gtorig[:, 1] = 1 - lbl[1][:, 1]
+            gtorig[:, 1] *= dpt.shape[0]
+            gtorig[:, 2] = lbl[1][:, 2]
+            return dpt, gtorig, self.jointsImgTo3D(gtorig)
         else:
-          dpt = dpt / 5.
-          lower = np.array([169, 150, 150], dtype=np.uint8)
-          upper = np.array([189, 255, 255], dtype=np.uint8)
-          mask = cv2.inRange(lbl, lower, upper)
-          pc = self.point_cloud(1 + (dpt / 6500.) * 254)
-          dpt[pc[:,:,1] > 0.125] = 0. # floor removal
+            dpt = dpt / 5.
+            lower = np.array([169, 150, 150], dtype=np.uint8)
+            upper = np.array([189, 255, 255], dtype=np.uint8)
+            mask = cv2.inRange(lbl, lower, upper)
+            pc = self.point_cloud(1 + (dpt / 6500.) * 254)
+            dpt[pc[:, :, 1] > 0.125] = 0.  # floor removal
 
-          com = list(reversed(list(ndimage.measurements.center_of_mass(mask))))
-          zs = dpt[mask!=0]
-          com = np.array(com + [np.mean(zs[zs!=0])])
-	  com = np.expand_dims(com,0)
-          return dpt, com, com
-
-
-
+            com = list(
+                reversed(list(ndimage.measurements.center_of_mass(mask))))
+            zs = dpt[mask != 0]
+            com = np.array(com + [np.mean(zs[zs != 0])])
+            com = np.expand_dims(com, 0)
+            return dpt, com, com
 
     def loadSequence(self, seqName, Nmax=float('inf'), shuffle=False, rng=None, docom=False, cube=None):
         """
@@ -1491,9 +1537,9 @@ class POSTImporter(DepthImporter):
             assert len(cube) == 3
             config = {'cube': cube}
 
-        pickleCache = '{}/{}_{}_{}_{}_{}_{}_{}__cache.pkl'.format(self.cacheDir, self.__class__.__name__, seqName, 
-                                                                 self.hand, self.allJoints, self.crop_joint_idx, 
-                                                                 HandDetector.detectionModeToString(docom, self.refineNet is not None), config['cube'][0])
+        pickleCache = '{}/{}_{}_{}_{}_{}_{}_{}__cache.pkl'.format(self.cacheDir, self.__class__.__name__, seqName,
+                                                                  self.hand, self.allJoints, self.crop_joint_idx,
+                                                                  HandDetector.detectionModeToString(docom, self.refineNet is not None), config['cube'][0])
         if self.useCache:
             if os.path.isfile(pickleCache):
                 print("Loading cache data from {}".format(pickleCache))
@@ -1512,47 +1558,53 @@ class POSTImporter(DepthImporter):
 
         self.loadRefineNetLazy(self.refineNet)
 
-
-        self.dirs = glob.glob(os.path.join(self.basepath, seqName +'*/'))
+        self.dirs = glob.glob(os.path.join(self.basepath, seqName + '*/'))
         for d in self.dirs:
-          images = [os.path.join(d,'', f) for f in sorted(os.listdir(os.path.join(d, '')))]
-          print(d, len(images))
-          self.images = self.images + images if hasattr(self, 'images') else images
+            images = [os.path.join(d, '', f)
+                      for f in sorted(os.listdir(os.path.join(d, '')))]
+            print(d, len(images))
+            self.images = self.images + \
+                images if hasattr(self, 'images') else images
 
         print(len(self.images))
         txt = 'Loading {}'.format(seqName)
-        pbar = pb.ProgressBar(maxval=len(self.images), widgets=[txt, pb.Percentage(), pb.Bar()])
+        pbar = pb.ProgressBar(maxval=len(self.images), widgets=[
+                              txt, pb.Percentage(), pb.Bar()])
         pbar.start()
 
         data = []
         i = 0
         for line in range(len(self.images)):
             dptFileName = self.images[line]
-	    print(line, len(self.images), dptFileName)
+            print(line, len(self.images), dptFileName)
 
             if not os.path.isfile(dptFileName):
                 print("File {} does not exist!".format(dptFileName))
                 i += 1
                 continue
             dpt, lbl = self.loadDepthMap(dptFileName, 'synth' in seqName)
-	    #print(dpt.shape, lbl.shape)
-	    #plt.imshow(dpt); plt.show()
+            #print(dpt.shape, lbl.shape)
+            #plt.imshow(dpt); plt.show()
             if self.hand is not None:
                 if self.hand != self.sides[seqName]:
                     raise NotImplementedError()
                     dpt = dpt[:, ::-1]
 
-            dpt, gtorig, gt3Dorig = self.prepareSamples(dpt, lbl, 'synth' in seqName)
-	    #plt.imshow(dpt); plt.show()
-	    print(gtorig)
+            dpt, gtorig, gt3Dorig = self.prepareSamples(
+                dpt, lbl, 'synth' in seqName)
+            #plt.imshow(dpt); plt.show()
+            print(gtorig)
 
             # print gt3D
-            self.showAnnotatedDepth(DepthFrame(dpt,gtorig,gtorig,0,gt3Dorig,gt3Dorig,0,dptFileName,'','', {}))
+            self.showAnnotatedDepth(DepthFrame(
+                dpt, gtorig, gtorig, 0, gt3Dorig, gt3Dorig, 0, dptFileName, '', '', {}))
 
             # Detect hand
-            hd = HandDetector(dpt, self.fx, self.fy, refineNet=self.refineNet, importer=self)
+            hd = HandDetector(dpt, self.fx, self.fy,
+                              refineNet=self.refineNet, importer=self)
             try:
-                dpt, M, com = hd.cropArea3D(com=np.floor(np.nanmean(gtorig, axis=0)), size=config['cube'], docom=docom)
+                dpt, M, com = hd.cropArea3D(com=np.floor(np.nanmean(
+                    gtorig, axis=0)), size=config['cube'], docom=docom)
             except UserWarning:
                 print("Skipping image {}, no hand detected".format(dptFileName))
                 i += 1
@@ -1563,15 +1615,17 @@ class POSTImporter(DepthImporter):
             gtcrop = transformPoints2D(gtorig, M)
 
             # print("{}".format(gt3Dorig))
-	    #if i % 100 == 0:
-            self.showAnnotatedDepth(DepthFrame(dpt,gtorig,gtcrop,M,gt3Dorig,gt3Dcrop,com3D,dptFileName,'','',{}))
+            # if i % 100 == 0:
+            self.showAnnotatedDepth(DepthFrame(
+                dpt, gtorig, gtcrop, M, gt3Dorig, gt3Dcrop, com3D, dptFileName, '', '', {}))
 
             data.append(DepthFrame(dpt.astype(np.float32), gtorig, gtcrop, M, gt3Dorig, gt3Dcrop, com3D, dptFileName,
                                    '', self.sides[seqName], {}))
 
-	    if True: #save to file
-		cropfile = dptFileName.replace('dmaps','crop').replace('png','pkl')
-		#print(cropfile)
+            if True:  # save to file
+                cropfile = dptFileName.replace(
+                    'dmaps', 'crop').replace('png', 'pkl')
+                # print(cropfile)
                 f = open(cropfile, 'wb')
                 cPickle.dump(data[-1], f, protocol=cPickle.HIGHEST_PROTOCOL)
                 f.close()
@@ -1581,7 +1635,7 @@ class POSTImporter(DepthImporter):
 
             # early stop
             if len(data) >= Nmax:
-	        print('nmax achieved', Nmax)
+                print('nmax achieved', Nmax)
                 break
 
         pbar.finish()
@@ -1590,7 +1644,8 @@ class POSTImporter(DepthImporter):
         if self.useCache:
             print("Save cache data to {}".format(pickleCache))
             f = open(pickleCache, 'wb')
-            cPickle.dump((seqName, data, config), f, protocol=cPickle.HIGHEST_PROTOCOL)
+            cPickle.dump((seqName, data, config), f,
+                         protocol=cPickle.HIGHEST_PROTOCOL)
             f.close()
 
         # shuffle data
@@ -1615,7 +1670,8 @@ class POSTImporter(DepthImporter):
 
             data = []
             for dat in range(min(joints.shape[0], gt.shape[0])):
-                fname = '{0:s}/depth_1_{1:07d}.png'.format(os.path.split(filename)[0], dat+1)
+                fname = '{0:s}/depth_1_{1:07d}.png'.format(
+                    os.path.split(filename)[0], dat+1)
                 if not os.path.isfile(fname):
                     continue
                 dm = self.loadDepthMap(fname)
@@ -1631,9 +1687,10 @@ class POSTImporter(DepthImporter):
                     jt += 1
 
                 for jt in range(ev.shape[0]):
-                    #if ev[jt,2] == 2001. or ev[jt,2] == 0.:
+                    # if ev[jt,2] == 2001. or ev[jt,2] == 0.:
                     if abs(ev[jt, 2] - gt[dat, 13, 2]) > 150.:
-                        ev[jt, 2] = gt[dat, jt, 2]#np.clip(ev[jt,2],gt[dat,13,2]-150.,gt[dat,13,2]+150.) # set to groundtruth if unknown
+                        # np.clip(ev[jt,2],gt[dat,13,2]-150.,gt[dat,13,2]+150.) # set to groundtruth if unknown
+                        ev[jt, 2] = gt[dat, jt, 2]
 
                 ev3D = self.jointsImgTo3D(ev)
                 data.append(ev3D)
@@ -1788,56 +1845,66 @@ class POSTImporter(DepthImporter):
         ax.imshow(frame.dpt, cmap=matplotlib.cm.jet, interpolation='nearest')
         ax.scatter(frame.gtcrop[:, 0], frame.gtcrop[:, 1])
 
-        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[1::-1, 0])), np.hstack((frame.gtcrop[13, 1], frame.gtcrop[1::-1, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[3:1:-1, 0])), np.hstack((frame.gtcrop[13, 1], frame.gtcrop[3:1:-1, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[5:3:-1, 0])), np.hstack((frame.gtcrop[13, 1], frame.gtcrop[5:3:-1, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[7:5:-1, 0])), np.hstack((frame.gtcrop[13, 1], frame.gtcrop[7:5:-1, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[10:7:-1, 0])), np.hstack((frame.gtcrop[13, 1], frame.gtcrop[10:7:-1, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[11, 0])), np.hstack((frame.gtcrop[13, 1], frame.gtcrop[11, 1])), c='r')
-        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[12, 0])), np.hstack((frame.gtcrop[13, 1], frame.gtcrop[12, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[1::-1, 0])),
+                np.hstack((frame.gtcrop[13, 1], frame.gtcrop[1::-1, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[3:1:-1, 0])),
+                np.hstack((frame.gtcrop[13, 1], frame.gtcrop[3:1:-1, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[5:3:-1, 0])),
+                np.hstack((frame.gtcrop[13, 1], frame.gtcrop[5:3:-1, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[7:5:-1, 0])),
+                np.hstack((frame.gtcrop[13, 1], frame.gtcrop[7:5:-1, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[10:7:-1, 0])), np.hstack(
+            (frame.gtcrop[13, 1], frame.gtcrop[10:7:-1, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[11, 0])), np.hstack(
+            (frame.gtcrop[13, 1], frame.gtcrop[11, 1])), c='r')
+        ax.plot(np.hstack((frame.gtcrop[13, 0], frame.gtcrop[12, 0])), np.hstack(
+            (frame.gtcrop[13, 1], frame.gtcrop[12, 1])), c='r')
 
         def format_coord(x, y):
             numrows, numcols = frame.dpt.shape
             col = int(x+0.5)
             row = int(y+0.5)
-            if col>=0 and col<numcols and row>=0 and row<numrows:
-                z = frame.dpt[row,col]
+            if col >= 0 and col < numcols and row >= 0 and row < numrows:
+                z = frame.dpt[row, col]
                 return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, z)
             else:
                 return 'x=%1.4f, y=%1.4f' % (x, y)
         ax.format_coord = format_coord
 
         for i in range(frame.gtcrop.shape[0]):
-            ax.annotate(str(i), (int(frame.gtcrop[i, 0]), int(frame.gtcrop[i, 1])))
+            ax.annotate(
+                str(i), (int(frame.gtcrop[i, 0]), int(frame.gtcrop[i, 1])))
 
         plt.show()
         plt.show(block=True)
 
     def point_cloud(self, depth):
-       """Transform a depth image into a point cloud with one point for each
-       pixel in the image, using the camera transform for a camera
-       centred at cx, cy with field of view fx, fy.
+        """Transform a depth image into a point cloud with one point for each
+        pixel in the image, using the camera transform for a camera
+        centred at cx, cy with field of view fx, fy.
 
-       depth is a 2-D ndarray with shape (rows, cols) containing
-       depths from 1 to 254 inclusive. The result is a 3-D array with
-       shape (rows, cols, 3). Pixels with invalid depth in the input have
-       NaN for the z-coordinate in the result.
+        depth is a 2-D ndarray with shape (rows, cols) containing
+        depths from 1 to 254 inclusive. The result is a 3-D array with
+        shape (rows, cols, 3). Pixels with invalid depth in the input have
+        NaN for the z-coordinate in the result.
 
-       """
-       rows, cols = depth.shape
-       c, r = np.meshgrid(np.arange(cols), np.arange(rows), sparse=True)
-       valid = (depth > 0) & (depth < 255)
-       z = np.where(valid, depth / 256.0, np.nan)
-       x = np.where(valid, z * (c - self.ux) / self.fx, 0)
-       y = np.where(valid, z * (r - self.uy) / self.fy, 0)
-       return np.dstack((x, y, z))
+        """
+        rows, cols = depth.shape
+        c, r = np.meshgrid(np.arange(cols), np.arange(rows), sparse=True)
+        valid = (depth > 0) & (depth < 255)
+        z = np.where(valid, depth / 256.0, np.nan)
+        x = np.where(valid, z * (c - self.ux) / self.fx, 0)
+        y = np.where(valid, z * (r - self.uy) / self.fy, 0)
+        return np.dstack((x, y, z))
 
     @staticmethod
     def depthToPCL(dpt, T, background_val=0.):
 
         # get valid points and transform
-        pts = np.asarray(np.where(~np.isclose(dpt, background_val))).transpose()
-        pts = np.concatenate([pts[:, [1, 0]] + 0.5, np.ones((pts.shape[0], 1), dtype='float32')], axis=1)
+        pts = np.asarray(np.where(~np.isclose(
+            dpt, background_val))).transpose()
+        pts = np.concatenate(
+            [pts[:, [1, 0]] + 0.5, np.ones((pts.shape[0], 1), dtype='float32')], axis=1)
         pts = np.dot(np.linalg.inv(np.asarray(T)), pts.T).T
         pts = (pts[:, 0:2] / pts[:, 2][:, None]).reshape((pts.shape[0], 2))
 
@@ -1850,4 +1917,3 @@ class POSTImporter(DepthImporter):
 
         # combine x,y,depth
         return np.column_stack((row, col, depth))
-
