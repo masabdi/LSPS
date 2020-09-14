@@ -8,7 +8,7 @@ import yaml
 
 class NetConfig(object):
     def __init__(self, config):
-        stream = open(config,'r')
+        stream = open(config, 'r')
         docs = yaml.load_all(stream)
         for doc in docs:
             for k, v in doc.items():
@@ -28,7 +28,7 @@ def dict_from_class(cls):
 
 class SettingConfig(object):
     def __init__(self, config):
-        stream = open(config,'r')
+        stream = open(config, 'r')
         docs = yaml.load_all(stream)
         for doc in docs:
             for k, v in doc.items():

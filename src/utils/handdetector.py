@@ -86,7 +86,8 @@ class HandDetector(object):
         elif com is True and refineNet is True:
             cfg = 'comref'
         else:
-            raise NotImplementedError("com {}, refineNet {}".format(com, refineNet))
+            raise NotImplementedError(
+                "com {}, refineNet {}".format(com, refineNet))
 
         return cfg
 
@@ -147,11 +148,13 @@ class HandDetector(object):
         y_ratio = float(src.shape[0] - 1) / dst.shape[0]
         for row in range(dst.shape[0]):
             y = int(row * y_ratio)
-            y_diff = (row * y_ratio) - y  # distance of the nearest pixel(y axis)
+            # distance of the nearest pixel(y axis)
+            y_diff = (row * y_ratio) - y
             y_diff_2 = 1 - y_diff
             for col in range(dst.shape[1]):
                 x = int(col * x_ratio)
-                x_diff = (col * x_ratio) - x  # distance of the nearest pixel(x axis)
+                # distance of the nearest pixel(x axis)
+                x_diff = (col * x_ratio) - x
                 x_diff_2 = 1 - x_diff
                 y2_cross_x2 = y_diff_2 * x_diff_2
                 y2_cross_x = y_diff_2 * x_diff
@@ -188,7 +191,8 @@ class HandDetector(object):
                 # print src[y, x], src[y, x+1],src[y+1, x],src[y+1, x+1]
                 # normalize weights
                 if not ((y2_cross_x2 == 0.) & (y2_cross_x == 0.) & (y_cross_x2 == 0.) & (y_cross_x == 0.)):
-                    sc = 1. / (y_cross_x + y_cross_x2 + y2_cross_x + y2_cross_x2)
+                    sc = 1. / (y_cross_x + y_cross_x2 +
+                               y2_cross_x + y2_cross_x2)
                     y2_cross_x2 *= sc
                     y2_cross_x *= sc
                     y_cross_x2 *= sc
@@ -221,10 +225,14 @@ class HandDetector(object):
         else:
             zstart = com[2] - size[2] / 2.
             zend = com[2] + size[2] / 2.
-            xstart = int(numpy.floor((com[0] * com[2] / self.fx - size[0] / 2.) / com[2]*self.fx+0.5))
-            xend = int(numpy.floor((com[0] * com[2] / self.fx + size[0] / 2.) / com[2]*self.fx+0.5))
-            ystart = int(numpy.floor((com[1] * com[2] / self.fy - size[1] / 2.) / com[2]*self.fy+0.5))
-            yend = int(numpy.floor((com[1] * com[2] / self.fy + size[1] / 2.) / com[2]*self.fy+0.5))
+            xstart = int(numpy.floor(
+                (com[0] * com[2] / self.fx - size[0] / 2.) / com[2]*self.fx+0.5))
+            xend = int(numpy.floor(
+                (com[0] * com[2] / self.fx + size[0] / 2.) / com[2]*self.fx+0.5))
+            ystart = int(numpy.floor(
+                (com[1] * com[2] / self.fy - size[1] / 2.) / com[2]*self.fy+0.5))
+            yend = int(numpy.floor(
+                (com[1] * com[2] / self.fy + size[1] / 2.) / com[2]*self.fy+0.5))
         return xstart, xend, ystart, yend, zstart, zend
 
     def comToTransform(self, com, size, dsize=(128, 128)):
@@ -273,14 +281,16 @@ class HandDetector(object):
         :return: cropped image
         """
         if len(dpt.shape) == 2:
-            cropped = dpt[max(ystart, 0):min(yend, dpt.shape[0]), max(xstart, 0):min(xend, dpt.shape[1])].copy()
+            cropped = dpt[max(ystart, 0):min(yend, dpt.shape[0]), max(
+                xstart, 0):min(xend, dpt.shape[1])].copy()
             # add pixels that are out of the image in order to keep aspect ratio
             cropped = numpy.pad(cropped, ((abs(ystart)-max(ystart, 0),
                                            abs(yend)-min(yend, dpt.shape[0])),
                                           (abs(xstart)-max(xstart, 0),
                                            abs(xend)-min(xend, dpt.shape[1]))), mode='constant', constant_values=background)
         elif len(dpt.shape) == 3:
-            cropped = dpt[max(ystart, 0):min(yend, dpt.shape[0]), max(xstart, 0):min(xend, dpt.shape[1]), :].copy()
+            cropped = dpt[max(ystart, 0):min(yend, dpt.shape[0]), max(
+                xstart, 0):min(xend, dpt.shape[1]), :].copy()
             # add pixels that are out of the image in order to keep aspect ratio
             cropped = numpy.pad(cropped, ((abs(ystart)-max(ystart, 0),
                                            abs(yend)-min(yend, dpt.shape[0])),
@@ -358,7 +368,8 @@ class HandDetector(object):
         xstart, xend, ystart, yend, zstart, zend = self.comToBounds(com, size)
 
         # crop patch from source
-        cropped = self.getCrop(dpt, xstart, xend, ystart, yend, zstart, zend, thresh_z, background)
+        cropped = self.getCrop(dpt, xstart, xend, ystart,
+                               yend, zstart, zend, thresh_z, background)
 
         wb = (xend - xstart)
         hb = (yend - ystart)
@@ -390,7 +401,7 @@ class HandDetector(object):
         :return: cropped hand image, transformation matrix for joints, CoM in image coordinates
         """
 
-        #print com, self.importer.jointImgTo3D(com)
+        # print com, self.importer.jointImgTo3D(com)
         #import matplotlib.pyplot as plt
         #import matplotlib
         #fig = plt.figure()
@@ -407,8 +418,9 @@ class HandDetector(object):
         xstart, xend, ystart, yend, zstart, zend = self.comToBounds(com, size)
 
         # crop patch from source
-        cropped = self.getCrop(self.dpt, xstart, xend, ystart, yend, zstart, zend)
-        #ax.plot(com[0],com[1],marker='.')
+        cropped = self.getCrop(self.dpt, xstart, xend,
+                               ystart, yend, zstart, zend)
+        # ax.plot(com[0],com[1],marker='.')
 
         #############
         # for simulating COM within cube
@@ -422,28 +434,33 @@ class HandDetector(object):
             com[1] += ystart
 
             # calculate boundaries
-            xstart, xend, ystart, yend, zstart, zend = self.comToBounds(com, size)
+            xstart, xend, ystart, yend, zstart, zend = self.comToBounds(
+                com, size)
 
             # crop patch from source
-            cropped = self.getCrop(self.dpt, xstart, xend, ystart, yend, zstart, zend)
+            cropped = self.getCrop(
+                self.dpt, xstart, xend, ystart, yend, zstart, zend)
         # ax.plot(com[0],com[1],marker='x')
 
         ##############
         if docom is True and self.refineNet is not None and self.importer is not None:
             rz = self.resizeCrop(cropped, dsize)
-            newCom3D = self.refineCoM(rz, size, com) + self.importer.jointImgTo3D(com)
+            newCom3D = self.refineCoM(
+                rz, size, com) + self.importer.jointImgTo3D(com)
             com = self.importer.joint3DToImg(newCom3D)
             if numpy.allclose(com, 0.):
                 com[2] = cropped[cropped.shape[0]//2, cropped.shape[1]//2]
 
             # calculate boundaries
-            xstart, xend, ystart, yend, zstart, zend = self.comToBounds(com, size)
+            xstart, xend, ystart, yend, zstart, zend = self.comToBounds(
+                com, size)
 
             # crop patch from source
-            cropped = self.getCrop(self.dpt, xstart, xend, ystart, yend, zstart, zend)
+            cropped = self.getCrop(
+                self.dpt, xstart, xend, ystart, yend, zstart, zend)
 
         # ax.plot(com[0],com[1],marker='o')
-        #plt.show(block=True)
+        # plt.show(block=True)
 
         #############
         wb = (xend - xstart)
@@ -467,7 +484,8 @@ class HandDetector(object):
         rz = self.resizeCrop(cropped, sz)
 
         #pylab.imshow(rz); pylab.gray();t=transformPoint2D(com,scale*trans);pylab.scatter(t[0],t[1]); pylab.show()
-        ret = numpy.ones(dsize, numpy.float32) * self.getNDValue()  # use background as filler
+        ret = numpy.ones(dsize, numpy.float32) * \
+            self.getNDValue()  # use background as filler
         xstart = int(numpy.floor(dsize[0] / 2. - rz.shape[1] / 2.))
         xend = int(xstart + rz.shape[1])
         ystart = int(numpy.floor(dsize[1] / 2. - rz.shape[0] / 2.))
@@ -514,12 +532,14 @@ class HandDetector(object):
         xstart, xend, ystart, yend, zstart, zend = self.comToBounds(com, size)
 
         # crop patch from source
-        cropped = self.getCrop(self.dpt, xstart, xend, ystart, yend, zstart, zend)
+        cropped = self.getCrop(self.dpt, xstart, xend,
+                               ystart, yend, zstart, zend)
 
         # predict movement of CoM
         if self.refineNet is not None and self.importer is not None:
             rz = self.resizeCrop(cropped, dsize)
-            newCom3D = self.refineCoM(rz, size, com) + self.importer.jointImgTo3D(com)
+            newCom3D = self.refineCoM(
+                rz, size, com) + self.importer.jointImgTo3D(com)
             com = self.importer.joint3DToImg(newCom3D)
             if numpy.allclose(com, 0.):
                 com[2] = cropped[cropped.shape[0]//2, cropped.shape[1]//2]
@@ -534,8 +554,10 @@ class HandDetector(object):
             part_ref[part_ref < zstart] = 0
             part_ref[part_ref > zend] = 0
             part_ref[part_ref != 0] = 10  # set to something
-            ret, thresh_ref = cv2.threshold(part_ref, 1, 255, cv2.THRESH_BINARY)
-            contours_ref, _ = cv2.findContours(thresh_ref.astype(dtype=numpy.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            ret, thresh_ref = cv2.threshold(
+                part_ref, 1, 255, cv2.THRESH_BINARY)
+            contours_ref, _ = cv2.findContours(thresh_ref.astype(
+                dtype=numpy.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             # find the largest contour
             areas = [cv2.contourArea(cc) for cc in contours_ref]
             c_max = numpy.argmax(areas)
@@ -555,10 +577,12 @@ class HandDetector(object):
         """
         for k in xrange(num_iter):
             # calculate boundaries
-            xstart, xend, ystart, yend, zstart, zend = self.comToBounds(com, size)
+            xstart, xend, ystart, yend, zstart, zend = self.comToBounds(
+                com, size)
 
             # crop
-            cropped = self.getCrop(self.dpt, xstart, xend, ystart, yend, zstart, zend)
+            cropped = self.getCrop(
+                self.dpt, xstart, xend, ystart, yend, zstart, zend)
 
             com = self.calculateCoM(cropped)
             if numpy.allclose(com, 0.):
@@ -577,7 +601,7 @@ class HandDetector(object):
 
         steps = 65
         dz = (self.maxDepth - self.minDepth)/float(steps)
-        for i in range(5,steps):
+        for i in range(5, steps):
             part = self.dpt.copy()
             part[part < i*dz + self.minDepth] = 0
             part[part > (i+1)*dz + self.minDepth] = 0
@@ -585,7 +609,8 @@ class HandDetector(object):
             #plt.imshow(part);  plt.show()
             ret, thresh = cv2.threshold(part, 1, 255, cv2.THRESH_BINARY)
             thresh = thresh.astype(dtype=numpy.uint8)
-            im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            im2, contours, hierarchy = cv2.findContours(
+                thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
             for c in range(len(contours)):
                 if cv2.contourArea(contours[c]) > 200:
@@ -621,8 +646,10 @@ class HandDetector(object):
                         part_ref[part_ref < zstart] = 0
                         part_ref[part_ref > zend] = 0
                         part_ref[part_ref != 0] = 10  # set to something
-                        ret, thresh_ref = cv2.threshold(part_ref, 1, 255, cv2.THRESH_BINARY)
-                        contours_ref, _ = cv2.findContours(thresh_ref.astype(dtype=numpy.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                        ret, thresh_ref = cv2.threshold(
+                            part_ref, 1, 255, cv2.THRESH_BINARY)
+                        contours_ref, _ = cv2.findContours(thresh_ref.astype(
+                            dtype=numpy.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
                         # find the largest contour
                         areas = [cv2.contourArea(cc) for cc in contours_ref]
                         c_max = numpy.argmax(areas)
@@ -649,7 +676,8 @@ class HandDetector(object):
         imgD -= com[2]
         imgD /= (size[2] / 2.)
 
-        test_data = numpy.zeros((1, 1, cropped.shape[0], cropped.shape[1]), dtype='float32')
+        test_data = numpy.zeros(
+            (1, 1, cropped.shape[0], cropped.shape[1]), dtype='float32')
         test_data[0, 0] = imgD
         # test_data2 = numpy.zeros((test_data.shape[0], test_data.shape[1], test_data.shape[2]//2, test_data.shape[3]//2), dtype='float32')
         # test_data4 = numpy.zeros((test_data2.shape[0], test_data2.shape[1], test_data2.shape[2]//2, test_data2.shape[3]//2), dtype='float32')
@@ -674,9 +702,11 @@ class HandDetector(object):
         if self.refineNet.cfgParams.numInputs == 1:
             jts = self.refineNet.computeOutput(test_data)
         elif self.refineNet.cfgParams.numInputs == 3:
-            jts = self.refineNet.computeOutput([test_data, test_data2, test_data4])
+            jts = self.refineNet.computeOutput(
+                [test_data, test_data2, test_data4])
         else:
-            raise NotImplementedError("Number of inputs is {}".format(self.refineNet.cfgParams.numInputs))
+            raise NotImplementedError("Number of inputs is {}".format(
+                self.refineNet.cfgParams.numInputs))
         return jts[0]*(size[2]/2.)
 
     def moveCoM(self, dpt, cube, com, off, joints3D, M, pad_value=0):
@@ -696,7 +726,8 @@ class HandDetector(object):
             return dpt, joints3D, com, M
 
         # add offset to com
-        new_com = self.importer.joint3DToImg(self.importer.jointImgTo3D(com) + off)
+        new_com = self.importer.joint3DToImg(
+            self.importer.jointImgTo3D(com) + off)
 
         # check for 1/0.
         if not (numpy.allclose(com[2], 0.) or numpy.allclose(new_com[2], 0.)):
@@ -709,7 +740,9 @@ class HandDetector(object):
             new_dpt = dpt
 
         # adjust joint positions to new CoM
-        new_joints3D = joints3D + self.importer.jointImgTo3D(com) - self.importer.jointImgTo3D(new_com)
+        new_joints3D = joints3D + \
+            self.importer.jointImgTo3D(
+                com) - self.importer.jointImgTo3D(new_com)
 
         return new_dpt, new_joints3D, new_com, Mnew
 
@@ -731,7 +764,8 @@ class HandDetector(object):
 
         rot = numpy.mod(rot, 360)
 
-        M = cv2.getRotationMatrix2D((dpt.shape[1]//2, dpt.shape[0]//2), -rot, 1)
+        M = cv2.getRotationMatrix2D(
+            (dpt.shape[1]//2, dpt.shape[0]//2), -rot, 1)
         if self.resizeMethod == self.RESIZE_CV2_NN:
             flags = cv2.INTER_NEAREST
         elif self.resizeMethod == self.RESIZE_CV2_LINEAR:
@@ -749,7 +783,6 @@ class HandDetector(object):
         new_joints3D = (self.importer.jointsImgTo3D(data_2D) - com3D)
 
         return new_dpt, new_joints3D, rot
-
 
     def scaleHand(self, dpt, cube, com, sc, joints3D, M, pad_value=0):
         """
@@ -836,10 +869,11 @@ class HandDetector(object):
                      'rot+com+sc', 'rot+sc+com', 'sc+rot+com', 'sc+com+rot', 'com+sc+rot', 'com+rot+sc']
         assert all([aug_modes[i] in all_modes for i in xrange(len(aug_modes))])
 
-	p2use = numpy.minimum(base_poses.shape[0], nmax)
-	print('poses to use %d' % p2use)
+        p2use = numpy.minimum(base_poses.shape[0], nmax)
+        print('poses to use %d' % p2use)
 
-        new_poses = numpy.zeros((int(num_poses), base_poses.shape[1], base_poses.shape[2]), dtype=base_poses.dtype)
+        new_poses = numpy.zeros(
+            (int(num_poses), base_poses.shape[1], base_poses.shape[2]), dtype=base_poses.dtype)
         new_com = numpy.zeros((int(num_poses), 3), dtype=base_poses.dtype)
         new_cube = numpy.zeros((int(num_poses), 3), dtype=base_poses.dtype)
         modes = rng.randint(0, len(aug_modes), int(num_poses))
@@ -855,8 +889,8 @@ class HandDetector(object):
                 return base_poses / (base_cube[:, 2]/2.)[:, None, None]
 
         for i in xrange(int(num_poses)):
-	    if i % 1000 == 0:
-		print(i)
+            if i % 1000 == 0:
+                print(i)
             mode = modes[i]
             ridx = ridxs[i]
             cube = base_cube[ridx]
@@ -866,17 +900,21 @@ class HandDetector(object):
                 # augment com
                 new_com[i] = com3D + off[i]
                 new_cube[i] = cube
-                new_poses[i] = (pose + com3D - new_com[i]) / (new_cube[i][2]/2.)
+                new_poses[i] = (pose + com3D - new_com[i]) / \
+                    (new_cube[i][2]/2.)
             elif aug_modes[mode] == 'rot':
                 # augment rotation
                 new_com[i] = com3D
                 new_cube[i] = cube
                 if rot3D is False:
                     joint_2D = importer.joints3DToImg(pose + new_com[i])
-                    data_2D = rotatePoints2D(joint_2D, importer.joint3DToImg(com3D)[0:2], rot[i, 0])
-                    new_poses[i] = (importer.jointsImgTo3D(data_2D) - new_com[i]) / (new_cube[i][2]/2.)
+                    data_2D = rotatePoints2D(
+                        joint_2D, importer.joint3DToImg(com3D)[0:2], rot[i, 0])
+                    new_poses[i] = (importer.jointsImgTo3D(
+                        data_2D) - new_com[i]) / (new_cube[i][2]/2.)
                 else:
-                    new_poses[i] = (rotatePoints3D(pose + new_com[i], new_com[i], rot[i, 0], rot[i, 1], rot[i, 2]) - new_com[i]) / (new_cube[i][2]/2.)
+                    new_poses[i] = (rotatePoints3D(pose + new_com[i], new_com[i], rot[i, 0],
+                                                   rot[i, 1], rot[i, 2]) - new_com[i]) / (new_cube[i][2]/2.)
             elif aug_modes[mode] == 'sc':
                 # augment cube
                 new_com[i] = com3D
@@ -894,10 +932,13 @@ class HandDetector(object):
                 pose = (pose + com3D - new_com[i])
                 if rot3D is False:
                     joint_2D = importer.joints3DToImg(pose + com3D)
-                    data_2D = rotatePoints2D(joint_2D, importer.joint3DToImg(new_com[i])[0:2], rot[i, 0])
-                    new_poses[i] = (importer.jointsImgTo3D(data_2D) - com3D) / (new_cube[i][2] / 2.)
+                    data_2D = rotatePoints2D(
+                        joint_2D, importer.joint3DToImg(new_com[i])[0:2], rot[i, 0])
+                    new_poses[i] = (importer.jointsImgTo3D(
+                        data_2D) - com3D) / (new_cube[i][2] / 2.)
                 else:
-                    new_poses[i] = (rotatePoints3D(pose + new_com[i], new_com[i], rot[i, 0], rot[i, 1], rot[i, 2]) - new_com[i]) / (new_cube[i][2] / 2.)
+                    new_poses[i] = (rotatePoints3D(pose + new_com[i], new_com[i], rot[i, 0],
+                                                   rot[i, 1], rot[i, 2]) - new_com[i]) / (new_cube[i][2] / 2.)
             elif aug_modes[mode] == 'rot+com+sc' or aug_modes[mode] == 'rot+sc+com' or aug_modes == 'sc+rot+com' or aug_modes == 'sc+com+rot' or aug_modes == 'com+sc+rot' or aug_modes == 'com+rot+sc':
                 # augment com+scale+rot
                 new_com[i] = com3D + off[i]
@@ -906,10 +947,13 @@ class HandDetector(object):
                 pose = pose * sc[i]
                 if rot3D is False:
                     joint_2D = importer.joints3DToImg(pose + com3D)
-                    data_2D = rotatePoints2D(joint_2D, importer.joint3DToImg(new_com[i])[0:2], rot[i, 0])
-                    new_poses[i] = (importer.jointsImgTo3D(data_2D) - com3D) / (new_cube[i][2] / 2.)
+                    data_2D = rotatePoints2D(
+                        joint_2D, importer.joint3DToImg(new_com[i])[0:2], rot[i, 0])
+                    new_poses[i] = (importer.jointsImgTo3D(
+                        data_2D) - com3D) / (new_cube[i][2] / 2.)
                 else:
-                    new_poses[i] = (rotatePoints3D(pose + new_com[i], new_com[i], rot[i, 0], rot[i, 1], rot[i, 2]) - new_com[i]) / (new_cube[i][2] / 2.)
+                    new_poses[i] = (rotatePoints3D(pose + new_com[i], new_com[i], rot[i, 0],
+                                                   rot[i, 1], rot[i, 2]) - new_com[i]) / (new_cube[i][2] / 2.)
             else:
                 raise NotImplementedError()
         if retall is True:
